@@ -45,6 +45,11 @@ Thumbs.db
 *.log
 logs/
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
 # Data files
 data/raw/
 data/processed/

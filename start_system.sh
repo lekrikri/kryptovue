@@ -7,7 +7,9 @@ if [ ! -d "venv" ]; then
     echo "📦 Création de l'environnement virtuel Python..."
     python3 -m venv venv
     source venv/bin/activate
-    pip install kafka-python requests lxml flask flask-cors
+    echo "📦 Installation des dépendances Python..."
+    pip install --upgrade pip
+    pip install kafka-python requests lxml flask flask-cors pyspark
 else
     echo "✅ Environnement virtuel trouvé"
     source venv/bin/activate
