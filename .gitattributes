@@ -1,0 +1,24 @@
+# Normaliser les fins de ligne automatiquement
+* text=auto
+
+# Fichiers spécifiques Flutter/Dart
+*.dart text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+
+# Fichiers binaires
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Scripts
+*.ps1 text eol=crlf
+*.sh text eol=lf
+*.bat text eol=crlf
+

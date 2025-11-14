@@ -5,9 +5,11 @@ import '../models/news_model.dart';
 import '../services/crypto_service.dart';
 import '../services/crypto_news_service.dart';
 import '../services/coingecko_service.dart';
+import '../services/api_gateway_service.dart';
 
 class CryptoProvider with ChangeNotifier {
   final CoinGeckoService _coinGeckoService = CoinGeckoService();
+  final ApiGatewayService _apiGatewayService = ApiGatewayService();
   final CryptoNewsService _newsService = CryptoNewsService();
   
   List<CryptoModel> _cryptos = [];
@@ -101,13 +103,62 @@ class CryptoProvider with ChangeNotifier {
       _setLoading(true);
       _error = '';
       
+      // Essayer d'abord l'API Gateway (données depuis Kafka)
+      final isApiGatewayAvailable = await _apiGatewayService.isAvailable();
+      
+      if (isApiGatewayAvailable) {
+        if (kDebugMode) {
+          print('🔄 Chargement des cryptos depuis l\'API Gateway (Kafka)...');
+        }
+        
+        try {
+          final cryptos = await _apiGatewayService.getTopCryptos(limit: limit);
+          
+          if (cryptos.isEmpty) {
+            throw Exception('Aucune crypto dans l\'API Gateway');
+          } else {
+            _cryptos = cryptos;
+            _filterCryptos();
+            if (kDebugMode) {
+              print('✅ ${cryptos.length} cryptos chargées depuis l\'API Gateway');
+            }
+            notifyListeners();
+            return;
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('⚠️ Erreur API Gateway, fallback vers CoinGecko: $e');
+          }
+        }
+      }
+      
+      // Fallback vers CoinGecko
+      if (kDebugMode) {
+        print('🔄 Chargement des cryptos depuis CoinGecko...');
+      }
+      
       final cryptos = await _coinGeckoService.getTopCryptos(limit: limit);
-      _cryptos = cryptos;
-      _filterCryptos(); // Applique le filtre après avoir chargé les données
+      
+      if (cryptos.isEmpty) {
+        _error = 'Aucune crypto trouvée';
+        if (kDebugMode) {
+          print('⚠️ Aucune crypto trouvée');
+        }
+      } else {
+        _cryptos = cryptos;
+        _filterCryptos(); // Applique le filtre après avoir chargé les données
+        if (kDebugMode) {
+          print('✅ ${cryptos.length} cryptos chargées depuis CoinGecko');
+        }
+      }
       
       notifyListeners();
     } catch (e) {
       _error = e.toString();
+      if (kDebugMode) {
+        print('❌ Erreur lors du chargement des cryptos: $e');
+        print('Stack trace: ${StackTrace.current}');
+      }
       notifyListeners();
     } finally {
       _setLoading(false);

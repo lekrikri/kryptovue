@@ -295,31 +295,53 @@ class _DarkHomeScreenState extends State<DarkHomeScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(40),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
                           Icons.error_outline,
                           size: 48,
-                          color: Color(0xFF8B93A7),
+                          color: Color(0xFFFF5252),
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          'Error loading data',
+                          'Erreur lors du chargement',
                           style: TextStyle(
-                            color: Color(0xFF8B93A7),
-                            fontSize: 16,
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
+                        Text(
+                          provider.error,
+                          style: const TextStyle(
+                            color: Color(0xFF8B93A7),
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
                         ElevatedButton(
                           onPressed: () => provider.fetchTopCryptos(),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF4A90E2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          ),
+                          child: const Text('Réessayer'),
+                        ),
+                        if (provider.error.contains('429') || provider.error.contains('Limite'))
+                          const Padding(
+                            padding: EdgeInsets.only(top: 16),
+                            child: Text(
+                              '💡 Astuce: Assurez-vous que l\'API Gateway est lancée\npour utiliser les données depuis Kafka',
+                              style: TextStyle(
+                                color: Color(0xFF8B93A7),
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
-                          child: const Text('Retry'),
-                        ),
                       ],
                     ),
                   ),
@@ -534,13 +556,122 @@ class _DarkHomeScreenState extends State<DarkHomeScreen> {
   }
 
   Widget _buildProfilePage() {
-    return const Center(
-      child: Text(
-        'Profile Page',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'More',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 30),
+            
+            // Bouton Analytics
+            _buildMenuCard(
+              icon: Icons.analytics,
+              title: 'Advanced Analytics',
+              subtitle: 'Technical indicators and market analysis',
+              color: const Color(0xFF50C878),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AnalyticsScreen(),
+                  ),
+                );
+              },
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Autres options
+            _buildMenuCard(
+              icon: Icons.settings,
+              title: 'Settings',
+              subtitle: 'App preferences and configuration',
+              color: const Color(0xFF8B93A7),
+              onTap: () {
+                // TODO: Implémenter la page de paramètres
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Settings coming soon'),
+                    backgroundColor: Color(0xFF1E2139),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E2139),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF2A2D47)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0xFF8B93A7),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Color(0xFF8B93A7),
+              size: 16,
+            ),
+          ],
         ),
       ),
     );

@@ -44,7 +44,9 @@ class DarkCryptoCard extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                crypto.symbol.substring(0, 2).toUpperCase(),
+                crypto.symbol.length >= 2 
+                    ? crypto.symbol.substring(0, 2).toUpperCase()
+                    : crypto.symbol.toUpperCase(),
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

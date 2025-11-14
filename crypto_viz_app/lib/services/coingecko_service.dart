@@ -24,6 +24,8 @@ class CoinGeckoService {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((crypto) => CryptoModel.fromJson(crypto)).toList();
+      } else if (response.statusCode == 429) {
+        throw Exception('Limite de taux CoinGecko atteinte (429). Veuillez utiliser l\'API Gateway ou réessayer plus tard.');
       } else {
         throw Exception('Erreur API: ${response.statusCode}');
       }

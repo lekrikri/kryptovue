@@ -39,7 +39,9 @@ class EnhancedCryptoCard extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    crypto.symbol.substring(0, 2).toUpperCase(),
+                    crypto.symbol.length >= 2 
+                        ? crypto.symbol.substring(0, 2).toUpperCase()
+                        : crypto.symbol.toUpperCase(),
                     style: const TextStyle(
                       color: Color(0xFF4A90E2),
                       fontSize: 14,
