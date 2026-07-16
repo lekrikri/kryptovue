@@ -9,21 +9,11 @@ audit and rebuild plan live in [`docs/AUDIT_CRYPTOVIZ_2026.md`](docs/AUDIT_CRYPT
 
 ---
 
-## Current architecture (legacy, being replaced)
+> The original Python/Spark/Flask stack was audited, found structurally flawed
+> (no persistence, fake streaming, decorative Spark) and replaced by the Go pipeline
+> below. It remains browsable at the git tag [`legacy-python-stack`](../../tree/legacy-python-stack).
 
-```
-Binance REST (30s polling) ─┐
-French crypto RSS feeds ────┼──▶ Kafka (+ Zookeeper) ──▶ Flask API Gateway (in-memory cache)
-                            │                                    │
-                            │                          ┌─────────┴─────────┐
-                            │                          ▼                   ▼
-                            └──▶ Spark (batch)   Flutter app        Streamlit dashboard
-```
-
-Known limitations (see audit): no persistence, polling instead of streaming,
-oversized Spark for the actual volume, no auth, no tests, no CI.
-
-## Target architecture
+## Architecture
 
 ```
 Binance WebSocket (real-time ticks) ─┐
@@ -37,21 +27,29 @@ French crypto RSS feeds ─────────────┘              
 
 | Path | Description |
 |---|---|
-| `data-ingestion/` | Legacy Python Kafka producer (Binance polling + French RSS) |
-| `api-gateway/` | Legacy Flask REST gateway |
-| `spark/`, `analytics/` | Legacy Spark processors (to be removed after migration) |
-| `dashboard/` | Legacy Streamlit dashboard |
-| `crypto_viz_app/` | Flutter app (mobile/desktop client) |
-| `docker/` | Docker Compose stacks (Kafka, Spark, full) |
-| `docs/` | Architecture, audit, technical-indicator & charts guides |
-| `specs/` | Spec-driven development artifacts (briefs, plans, AI benchmark) |
+| `cmd/ingester` | Binance WebSocket → Redpanda (`crypto.trades`) |
+| `cmd/aggregator` | Trades → 1m OHLCV candles → TimescaleDB |
+| `cmd/api` | REST (prices, candles) + SSE real-time stream |
+| `internal/` | Shared Go packages (binance, candle, store, config, model) |
+| `deploy/` | Docker Compose dev stack (Redpanda, Console, TimescaleDB) + DB schema |
+| `specs/` | Spec-driven development artifacts (constitution, specs, AI benchmark) |
+| `docs/` | Audit, technical-indicator & charts guides |
+| `crypto_viz_app/` | Flutter app (future mobile client) |
 
-## Quick start (legacy stack)
+## Quick start
 
 ```bash
-docker compose -f docker/docker-compose.full.yml up -d   # Kafka + collector + gateway + UI
-cd crypto_viz_app && flutter run                          # Flutter client
+make infra-up          # Redpanda + Console (:8090) + TimescaleDB (:5433)
+make run-ingester      # Binance WS → Redpanda
+make run-aggregator    # candles 1m → TimescaleDB
+make run-api           # http://localhost:8080
+
+curl localhost:8080/api/v1/prices
+curl localhost:8080/api/v1/candles/btcusdt?interval=1m
+curl -N localhost:8080/api/v1/stream        # SSE live trades
 ```
+
+Run `make ci` (vet + test + build) before pushing.
 
 ## Roadmap
 
