@@ -105,6 +105,36 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"data": candles, "count": len(candles)})
 	})
 
+	router.GET("/api/v1/news", func(c *gin.Context) {
+		limit, _ := strconv.Atoi(c.DefaultQuery("limit", "30"))
+		news, err := db.RecentNews(c.Request.Context(), limit)
+		if err != nil {
+			slog.Error("recent news", "err", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": news, "count": len(news)})
+	})
+
+	router.GET("/api/v1/news/:symbol", func(c *gin.Context) {
+		limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+		news, err := db.NewsBySymbol(c.Request.Context(), c.Param("symbol"), limit)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": news, "count": len(news)})
+	})
+
+	router.GET("/api/v1/sentiment", func(c *gin.Context) {
+		sent, err := db.SentimentBySymbol(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": sent, "count": len(sent)})
+	})
+
 	router.GET("/api/v1/stream", func(c *gin.Context) {
 		ch := h.subscribe()
 		metrics.SSEClients.Inc()

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { fetchCandles } from "@/lib/api";
+import { fetchCandles, fetchNewsBySymbol } from "@/lib/api";
 import { coinBySlug, coinIcon, COINS } from "@/lib/coins";
 import { changePercent, formatPrice } from "@/lib/format";
 import { ChangeBadge } from "@/components/ChangeBadge";
 import { CandlestickChart } from "@/components/CandlestickChart";
+import { NewsFeed } from "@/components/NewsFeed";
 
 export const revalidate = 30;
 
@@ -37,7 +38,10 @@ export default async function CoinPage({
   const coin = coinBySlug(slug);
   if (!coin) notFound();
 
-  const candles = await fetchCandles(coin.symbol, "1m", 240);
+  const [candles, news] = await Promise.all([
+    fetchCandles(coin.symbol, "1m", 240),
+    fetchNewsBySymbol(coin.symbol, 6),
+  ]);
   const last = candles.at(-1);
   const price = last?.close;
   const pct =
@@ -108,6 +112,13 @@ export default async function CoinPage({
       </section>
 
       <CandlestickChart candles={candles} />
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-bold tracking-widest text-white">
+          NEWS_SCAN :: {coin.ticker}
+        </h2>
+        <NewsFeed news={news} />
+      </section>
 
       <section className="max-w-none text-sm text-gray-500">
         <p>

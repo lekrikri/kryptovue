@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { buildRows } from "@/lib/rows";
+import { fetchNews } from "@/lib/api";
 import { formatChange, formatPrice } from "@/lib/format";
 import { PriceTable } from "@/components/PriceTable";
 import { SentimentGauge } from "@/components/SentimentGauge";
+import { NewsFeed } from "@/components/NewsFeed";
 
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const rows = await buildRows();
+  const [rows, news] = await Promise.all([buildRows(), fetchNews(8)]);
   const gainers = rows.filter((r) => r.changePct > 0).length;
   const losers = rows.length - gainers;
   const avgChange = rows.reduce((s, r) => s + r.changePct, 0) / (rows.length || 1);
@@ -95,6 +97,19 @@ export default async function HomePage() {
           </div>
         </div>
         <PriceTable rows={rows} />
+      </section>
+
+      {/* NEWS_FEED */}
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-bold tracking-widest text-white">
+            NEWS_FEED :: SENTIMENT_SCAN
+          </h2>
+          <p className="text-[11px] tracking-wide text-gray-500">
+            {"// actus crypto francophones analysées par IA (sentiment)"}
+          </p>
+        </div>
+        <NewsFeed news={news} />
       </section>
     </div>
   );

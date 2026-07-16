@@ -120,3 +120,83 @@ func (s *Store) Candles(ctx context.Context, symbol, interval string, limit int)
 	}
 	return out, rows.Err()
 }
+
+func scanNews(rows interface {
+	Next() bool
+	Scan(...any) error
+	Err() error
+}) ([]model.News, error) {
+	var out []model.News
+	for rows.Next() {
+		var n model.News
+		if err := rows.Scan(&n.ID, &n.Source, &n.Title, &n.URL, &n.Summary,
+			&n.PublishedAt, &n.Coins, &n.Score, &n.Label); err != nil {
+			return nil, err
+		}
+		out = append(out, n)
+	}
+	return out, rows.Err()
+}
+
+const newsCols = `id, source, title, url, summary, published_at, coins, sentiment_score, sentiment_label`
+
+// RecentNews retourne les dernières actualités, tous symboles confondus.
+func (s *Store) RecentNews(ctx context.Context, limit int) ([]model.News, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 30
+	}
+	rows, err := s.pool.Query(ctx,
+		`SELECT `+newsCols+` FROM news ORDER BY published_at DESC LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanNews(rows)
+}
+
+// NewsBySymbol retourne les actualités mentionnant un symbole.
+func (s *Store) NewsBySymbol(ctx context.Context, symbol string, limit int) ([]model.News, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+	rows, err := s.pool.Query(ctx,
+		`SELECT `+newsCols+` FROM news WHERE $1 = ANY(coins)
+		 ORDER BY published_at DESC LIMIT $2`, symbol, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanNews(rows)
+}
+
+// SentimentBySymbol agrège le sentiment moyen par symbole sur 48 h glissantes.
+func (s *Store) SentimentBySymbol(ctx context.Context) ([]model.Sentiment, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT coin, AVG(sentiment_score) AS score, COUNT(*) AS n
+		FROM news, unnest(coins) AS coin
+		WHERE published_at > now() - interval '48 hours'
+		GROUP BY coin
+		ORDER BY coin`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []model.Sentiment
+	for rows.Next() {
+		var s model.Sentiment
+		if err := rows.Scan(&s.Symbol, &s.Score, &s.Count); err != nil {
+			return nil, err
+		}
+		switch {
+		case s.Score >= 0.15:
+			s.Label = "positive"
+		case s.Score <= -0.15:
+			s.Label = "negative"
+		default:
+			s.Label = "neutral"
+		}
+		out = append(out, s)
+	}
+	return out, rows.Err()
+}

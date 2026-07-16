@@ -22,3 +22,22 @@ export interface Trade {
   ts_ms: number;
   source: string;
 }
+
+export interface News {
+  id: string;
+  source: string;
+  title: string;
+  url: string;
+  summary: string;
+  published_at: string;
+  coins: string[];
+  sentiment_score: number;
+  sentiment_label: "positive" | "neutral" | "negative";
+}
+
+export interface Sentiment {
+  symbol: string;
+  score: number;
+  label: "positive" | "neutral" | "negative";
+  count: number;
+}

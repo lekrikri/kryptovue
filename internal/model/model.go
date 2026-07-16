@@ -35,3 +35,24 @@ type PriceRow struct {
 	Price     float64   `json:"price"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+// News est un article crypto FR analysé par l'ai-worker.
+type News struct {
+	ID          string    `json:"id"`
+	Source      string    `json:"source"`
+	Title       string    `json:"title"`
+	URL         string    `json:"url"`
+	Summary     string    `json:"summary"`
+	PublishedAt time.Time `json:"published_at"`
+	Coins       []string  `json:"coins"`
+	Score       float64   `json:"sentiment_score"`
+	Label       string    `json:"sentiment_label"`
+}
+
+// Sentiment est l'agrégat de sentiment récent d'un symbole.
+type Sentiment struct {
+	Symbol string  `json:"symbol"`
+	Score  float64 `json:"score"`
+	Label  string  `json:"label"`
+	Count  int     `json:"count"`
+}

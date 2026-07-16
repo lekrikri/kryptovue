@@ -32,8 +32,9 @@ French crypto RSS feeds ─────────────┘              
 |---|---|
 | `cmd/ingester` | Binance WebSocket → Redpanda (`crypto.trades`) |
 | `cmd/aggregator` | Trades → 1m OHLCV candles → TimescaleDB |
-| `cmd/api` | REST (prices, candles) + SSE real-time stream |
+| `cmd/api` | REST (prices, candles, news, sentiment) + SSE real-time stream |
 | `internal/` | Shared Go packages (binance, candle, store, config, model, metrics) |
+| `ai-worker/` | Python worker: French crypto RSS → sentiment analysis → TimescaleDB |
 | `web/` | Next.js 15 front (SEO pages, live prices via SSE, candlestick charts, heatmap) |
 | `deploy/` | Docker Compose stacks + DB schema + Prometheus/Grafana provisioning |
 | `specs/` | Spec-driven development artifacts (constitution, specs, AI benchmark) |
@@ -116,11 +117,13 @@ services) and **Grafana** (`:3001`, Prometheus datasource pre-provisioned).
 ## Roadmap
 
 - [x] Phase 0 — repo migration, dead-code purge, audit, AI architecture benchmark
-- [ ] Phase 1 — Go ingestion pipeline (Binance WS → Redpanda → TimescaleDB) + REST/SSE API
-- [ ] Phase 2 — Next.js web front (SEO pages, candlesticks, market heatmap)
-- [ ] Phase 3 — AI features (French news sentiment, daily market brief)
+- [x] Phase 1 — Go ingestion pipeline (Binance WS → Redpanda → TimescaleDB) + REST/SSE API
+- [x] Phase 2 — Next.js web front (terminal UI, SEO pages, candlesticks, market heatmap)
+- [x] Phase 3 — AI: French crypto news aggregation + sentiment analysis
 - [ ] Phase 4 — accounts, smart alerts (Telegram/email), premium tier
-- [ ] Phase 5 — public launch & live demo
+- [ ] Phase 5 — public launch & live demo (Hetzner VPS)
+
+CI/CD, Prometheus + Grafana observability, and full Docker packaging are in place.
 
 ## License
 

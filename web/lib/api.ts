@@ -1,4 +1,4 @@
-import type { Candle, Price } from "./types";
+import type { Candle, News, Price, Sentiment } from "./types";
 
 // URL serveur (SSR / Server Components). En prod: http://api:8080 (réseau Docker).
 const SERVER_API = process.env.API_URL ?? "http://localhost:8081";
@@ -40,5 +40,35 @@ export async function fetchCandles(
     return body.data ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function fetchNews(limit = 12): Promise<News[]> {
+  try {
+    const body = await getJSON<ListResponse<News>>(`/api/v1/news?limit=${limit}`, 60);
+    return body.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchNewsBySymbol(symbol: string, limit = 6): Promise<News[]> {
+  try {
+    const body = await getJSON<ListResponse<News>>(
+      `/api/v1/news/${symbol}?limit=${limit}`,
+      60,
+    );
+    return body.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchSentiment(): Promise<Record<string, Sentiment>> {
+  try {
+    const body = await getJSON<ListResponse<Sentiment>>("/api/v1/sentiment", 60);
+    return Object.fromEntries((body.data ?? []).map((s) => [s.symbol, s]));
+  } catch {
+    return {};
   }
 }
