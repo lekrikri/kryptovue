@@ -211,6 +211,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               AdvancedAnalyticsCharts(
                                 crypto: crypto,
                                 timeframe: selectedTimeframe,
+                                onPriceChangeCalculated: (changePercent) {
+                                  setState(() {
+                                    _calculatedPriceChangePercent = changePercent;
+                                  });
+                                },
                               ),
                               const SizedBox(height: 20),
                               
