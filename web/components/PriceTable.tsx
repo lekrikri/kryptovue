@@ -28,11 +28,14 @@ export function PriceTable({ rows }: { rows: Row[] }) {
       <table className="w-full text-left">
         <thead className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
           <tr>
-            <th className="px-4 py-3 font-medium sm:px-6">Crypto</th>
+            <th className="px-4 py-3 font-medium sm:px-6">Actif</th>
             <th className="px-4 py-3 text-right font-medium sm:px-6">Prix</th>
-            <th className="px-4 py-3 text-right font-medium sm:px-6">24 h</th>
+            <th className="px-4 py-3 text-right font-medium sm:px-6">Var. 24 h</th>
             <th className="hidden px-6 py-3 text-right font-medium lg:table-cell">
-              Tendance
+              Tendance (7 j)
+            </th>
+            <th className="hidden px-6 py-3 text-right font-medium sm:table-cell">
+              Action
             </th>
           </tr>
         </thead>
@@ -80,9 +83,18 @@ export function PriceTable({ rows }: { rows: Row[] }) {
                   <div className="flex justify-end">
                     <Sparkline
                       values={row.spark}
-                      color={row.changePct >= 0 ? "#16a34a" : "#dc2626"}
+                      color={row.changePct >= 0 ? "#16a34a" : "#ef4444"}
                     />
                   </div>
+                </td>
+                <td className="hidden px-6 py-4 text-right sm:table-cell">
+                  <span
+                    className="text-gray-300 transition-colors hover:text-amber-400"
+                    title="Ajouter aux favoris"
+                    aria-hidden
+                  >
+                    ★
+                  </span>
                 </td>
               </tr>
             );
