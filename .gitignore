@@ -1,69 +1,45 @@
-# Python
+# --- Python ---
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
 venv/
+.venv/
 env/
-ENV/
-
-# Jupyter Notebook
+.pytest_cache/
+.mypy_cache/
 .ipynb_checkpoints
 
-# Docker
-.dockerignore
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
+# --- Logs & data dumps ---
 *.log
-logs/
-
-# Database files
 *.db
-*.sqlite
-*.sqlite3
-
-# Data files
-data/raw/
-data/processed/
+*.parquet
 *.csv
-data/*.json
 
-# Kafka data
-kafka-logs/
-zookeeper-data/
-
-# Spark
-spark-warehouse/
-metastore_db/
-
-# Environment variables
+# --- Env & secrets ---
 .env
-.env.local
+.env.*
+!.env.example
+
+# --- Flutter / Dart ---
+crypto_viz_app/.dart_tool/
+crypto_viz_app/build/
+crypto_viz_app/.flutter-plugins*
+crypto_viz_app/android/local.properties
+crypto_viz_app/ios/Flutter/ephemeral/
+crypto_viz_app/linux/flutter/ephemeral/
+crypto_viz_app/macos/Flutter/ephemeral/
+crypto_viz_app/windows/flutter/ephemeral/
+
+# --- Go (future services) ---
+bin/
+*.exe
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+*.swp
+.DS_Store
+*.iml
+
+# --- Local archive (not for the repo) ---
+_archive/
