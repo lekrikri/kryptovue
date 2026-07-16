@@ -1,0 +1,56 @@
+name: kryptovue-dev
+
+services:
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.2.7
+    container_name: kv-redpanda
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:19092
+      - --mode dev-container
+      - --smp 1
+      - --memory 1G
+    ports:
+      - "19092:19092"
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -q 'Healthy:.*true'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  console:
+    image: docker.redpanda.com/redpandadata/console:v2.7.2
+    container_name: kv-console
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+    ports:
+      - "8090:8080"
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: kv-timescaledb
+    environment:
+      POSTGRES_USER: kryptovue
+      POSTGRES_PASSWORD: kryptovue
+      POSTGRES_DB: kryptovue
+    ports:
+      - "5433:5432"
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kryptovue"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  redpanda-data:
+  timescale-data:
