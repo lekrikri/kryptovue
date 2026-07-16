@@ -33,11 +33,12 @@ French crypto RSS feeds ─────────────┘              
 | `cmd/ingester` | Binance WebSocket → Redpanda (`crypto.trades`) |
 | `cmd/aggregator` | Trades → 1m OHLCV candles → TimescaleDB |
 | `cmd/api` | REST (prices, candles) + SSE real-time stream |
-| `internal/` | Shared Go packages (binance, candle, store, config, model) |
-| `deploy/` | Docker Compose dev stack (Redpanda, Console, TimescaleDB) + DB schema |
+| `internal/` | Shared Go packages (binance, candle, store, config, model, metrics) |
+| `web/` | Next.js 15 front (SEO pages, live prices via SSE, candlestick charts, heatmap) |
+| `deploy/` | Docker Compose stacks + DB schema + Prometheus/Grafana provisioning |
 | `specs/` | Spec-driven development artifacts (constitution, specs, AI benchmark) |
 | `docs/` | Audit, technical-indicator & charts guides |
-| `crypto_viz_app/` | Flutter app (future mobile client) |
+| `crypto_viz_app/` | Flutter app (future native mobile client) |
 
 ## Quick start
 
@@ -53,6 +54,19 @@ curl -N localhost:8080/api/v1/stream        # SSE live trades
 ```
 
 Run `make ci` (vet + test + build) before pushing.
+
+### Web front (Next.js)
+
+```bash
+cd web
+cp .env.example .env.local     # points at the Go API (default http://localhost:8081)
+pnpm install
+pnpm dev                       # http://localhost:3000
+```
+
+Pages: `/` (live top prices), `/prix/[coin]` (SSR + SEO + candlestick chart),
+`/heatmap`. Responsive (desktop + mobile browsers); the Flutter app remains the
+future native mobile client.
 
 ## CI/CD
 
