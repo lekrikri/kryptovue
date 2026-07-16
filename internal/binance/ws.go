@@ -23,12 +23,18 @@ type combinedMsg struct {
 	Data   tradeEvent `json:"data"`
 }
 
+// Tous les champs du payload sont déclarés explicitement : le matching JSON de
+// Go est insensible à la casse en fallback, donc sans champ dédié, "E" (event
+// time, number) serait absorbé par le tag "e" (event type, string) → erreur.
 type tradeEvent struct {
 	EventType string `json:"e"`
+	EventTime int64  `json:"E"`
 	Symbol    string `json:"s"`
+	TradeID   int64  `json:"t"`
 	Price     string `json:"p"`
 	Qty       string `json:"q"`
 	TradeTime int64  `json:"T"`
+	IsMaker   bool   `json:"m"`
 }
 
 // StreamURL construit l'URL combined streams pour une liste de symboles.

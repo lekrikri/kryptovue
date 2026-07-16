@@ -26,7 +26,7 @@ func Load() Config {
 	return Config{
 		KafkaBrokers: strings.Split(getenv("KAFKA_BROKERS", "localhost:19092"), ","),
 		TradesTopic:  getenv("KAFKA_TRADES_TOPIC", "crypto.trades"),
-		DatabaseURL:  getenv("DATABASE_URL", "postgres://kryptovue:kryptovue@localhost:5433/kryptovue"),
+		DatabaseURL:  getenv("DATABASE_URL", "postgres://kryptovue:kryptovue@localhost:5434/kryptovue"),
 		Symbols: strings.Split(getenv("SYMBOLS",
 			"btcusdt,ethusdt,solusdt,xrpusdt,adausdt,dogeusdt,dotusdt,linkusdt,avaxusdt,ltcusdt"), ","),
 		APIPort: getenv("API_PORT", "8080"),

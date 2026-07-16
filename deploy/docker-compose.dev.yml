@@ -41,7 +41,7 @@ services:
       POSTGRES_PASSWORD: kryptovue
       POSTGRES_DB: kryptovue
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - timescale-data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
