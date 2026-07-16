@@ -12,6 +12,7 @@ type Config struct {
 	DatabaseURL  string   // DATABASE_URL
 	Symbols      []string // SYMBOLS, ex: "btcusdt,ethusdt"
 	APIPort      string   // API_PORT
+	MetricsAddr  string   // METRICS_ADDR, ex: ":9100"
 }
 
 func getenv(key, def string) string {
@@ -29,6 +30,7 @@ func Load() Config {
 		DatabaseURL:  getenv("DATABASE_URL", "postgres://kryptovue:kryptovue@localhost:5434/kryptovue"),
 		Symbols: strings.Split(getenv("SYMBOLS",
 			"btcusdt,ethusdt,solusdt,xrpusdt,adausdt,dogeusdt,dotusdt,linkusdt,avaxusdt,ltcusdt"), ","),
-		APIPort: getenv("API_PORT", "8080"),
+		APIPort:     getenv("API_PORT", "8080"),
+		MetricsAddr: getenv("METRICS_ADDR", ":9100"),
 	}
 }

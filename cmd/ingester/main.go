@@ -13,6 +13,7 @@ import (
 
 	"github.com/lekrikri/kryptovue/internal/binance"
 	"github.com/lekrikri/kryptovue/internal/config"
+	"github.com/lekrikri/kryptovue/internal/metrics"
 	"github.com/lekrikri/kryptovue/internal/model"
 )
 
@@ -33,6 +34,8 @@ func main() {
 	}
 	defer client.Close()
 
+	go metrics.Serve(ctx, cfg.MetricsAddr)
+
 	trades := make(chan model.Trade, 1024)
 	go binance.Stream(ctx, cfg.Symbols, trades)
 
@@ -52,10 +55,14 @@ func main() {
 				continue
 			}
 			record := &kgo.Record{Key: []byte(t.Symbol), Value: payload}
+			symbol := t.Symbol
 			client.Produce(ctx, record, func(_ *kgo.Record, err error) {
 				if err != nil {
 					slog.Error("produce", "err", err)
+					metrics.ProduceErrors.Inc()
+					return
 				}
+				metrics.TradesProduced.WithLabelValues(symbol).Inc()
 			})
 			produced++
 			if produced%1000 == 0 {

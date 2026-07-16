@@ -82,6 +82,23 @@ To enable automated deploys, set repo variable `DEPLOY_ENABLED=true` and secrets
 Images are built from a single multi-stage [`Dockerfile`](Dockerfile) (distroless,
 non-root, ~35 MB) selected via `--build-arg SERVICE=ingester|aggregator|api`.
 
+## Observability
+
+Each service exposes Prometheus metrics on `/metrics` (`:9100` in prod, `:9101-9103` in dev):
+
+| Metric | Service | Meaning |
+|---|---|---|
+| `kryptovue_trades_produced_total{symbol}` | ingester | trades published to Kafka |
+| `kryptovue_trades_consumed_total` | aggregator | trades read from Kafka |
+| `kryptovue_candles_persisted_total` | aggregator | 1m candles written to TimescaleDB |
+| `kryptovue_db_errors_total{op}` | aggregator | DB write failures |
+| `kryptovue_sse_clients` | api | connected SSE clients |
+| `kryptovue_http_requests_total{method,route,status}` | api | HTTP traffic |
+| `kryptovue_http_request_duration_seconds{route}` | api | request latency histogram |
+
+The prod stack (`docker-compose.prod.yml`) ships **Prometheus** (scrapes all three
+services) and **Grafana** (`:3001`, Prometheus datasource pre-provisioned).
+
 ## Roadmap
 
 - [x] Phase 0 — repo migration, dead-code purge, audit, AI architecture benchmark

@@ -32,5 +32,6 @@ Pipeline validé de bout en bout en local :
 - [x] Dockeriser les 3 services Go (Dockerfile multi-stage distroless, ~35 Mo)
 - [x] CI/CD complet (GitHub Actions) : lint/test/build + build & push images GHCR + deploy VPS
 - [x] `docker-compose.prod.yml` (images GHCR, healthchecks, restart policies)
+- [x] Métriques Prometheus + Grafana (trades produits/consommés, candles, clients SSE,
+      latence HTTP) — endpoint /metrics sur les 3 services, stack monitoring en prod
 - [ ] Backfill historique CoinGecko au démarrage (bougies avant le premier tick live)
-- [ ] Métriques Prometheus (trades/s, lag consumer) — décidé au benchmark IA

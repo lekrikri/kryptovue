@@ -18,6 +18,7 @@ import (
 	"github.com/twmb/franz-go/pkg/kgo"
 
 	"github.com/lekrikri/kryptovue/internal/config"
+	"github.com/lekrikri/kryptovue/internal/metrics"
 	"github.com/lekrikri/kryptovue/internal/store"
 )
 
@@ -69,9 +70,10 @@ func main() {
 
 	h := newHub()
 	go consumeTrades(ctx, cfg, h)
+	go metrics.Serve(ctx, cfg.MetricsAddr)
 
 	router := gin.New()
-	router.Use(gin.Recovery())
+	router.Use(gin.Recovery(), metricsMiddleware())
 
 	router.GET("/health", func(c *gin.Context) {
 		status := "healthy"
@@ -105,7 +107,11 @@ func main() {
 
 	router.GET("/api/v1/stream", func(c *gin.Context) {
 		ch := h.subscribe()
-		defer h.unsubscribe(ch)
+		metrics.SSEClients.Inc()
+		defer func() {
+			h.unsubscribe(ch)
+			metrics.SSEClients.Dec()
+		}()
 
 		c.Header("Content-Type", "text/event-stream")
 		c.Header("Cache-Control", "no-cache")
@@ -139,6 +145,25 @@ func main() {
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		slog.Error("serveur HTTP", "err", err)
 		os.Exit(1)
+	}
+}
+
+// metricsMiddleware enregistre le nombre et la latence des requêtes HTTP.
+// La route est prise depuis c.FullPath() (motif, ex "/api/v1/candles/:symbol")
+// pour éviter une explosion de cardinalité sur les valeurs de paramètres.
+func metricsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		c.Next()
+
+		route := c.FullPath()
+		if route == "" {
+			route = "unknown"
+		}
+		metrics.HTTPDuration.WithLabelValues(route).Observe(time.Since(start).Seconds())
+		metrics.HTTPRequests.WithLabelValues(
+			c.Request.Method, route, strconv.Itoa(c.Writer.Status()),
+		).Inc()
 	}
 }
 

@@ -14,14 +14,15 @@ infra-logs:
 	docker compose -f deploy/docker-compose.dev.yml logs -f
 
 # --- Services Go (dev, sur l'hôte) ---
+# En dev les 3 services tournent sur le même host → ports metrics distincts.
 run-ingester:
-	go run ./cmd/ingester
+	METRICS_ADDR=:9101 go run ./cmd/ingester
 
 run-aggregator:
-	go run ./cmd/aggregator
+	METRICS_ADDR=:9102 go run ./cmd/aggregator
 
 run-api:
-	go run ./cmd/api
+	METRICS_ADDR=:9103 go run ./cmd/api
 
 # --- Qualité ---
 vet:

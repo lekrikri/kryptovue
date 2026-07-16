@@ -14,6 +14,7 @@ import (
 
 	"github.com/lekrikri/kryptovue/internal/candle"
 	"github.com/lekrikri/kryptovue/internal/config"
+	"github.com/lekrikri/kryptovue/internal/metrics"
 	"github.com/lekrikri/kryptovue/internal/model"
 	"github.com/lekrikri/kryptovue/internal/store"
 )
@@ -47,6 +48,8 @@ func main() {
 	}
 	defer client.Close()
 
+	go metrics.Serve(ctx, cfg.MetricsAddr)
+
 	agg := candle.New(time.Minute)
 	latest := make(map[string]model.Trade) // dernier trade par symbole, flush périodique
 
@@ -71,6 +74,7 @@ func main() {
 			for sym, t := range latest {
 				if err := db.UpsertLatestPrice(ctx, sym, t.Price, t.Time()); err != nil {
 					slog.Error("upsert latest_price", "symbol", sym, "err", err)
+					metrics.DBErrors.WithLabelValues("price").Inc()
 				}
 				delete(latest, sym)
 			}
@@ -94,9 +98,13 @@ func main() {
 					return
 				}
 				latest[t.Symbol] = t
+				metrics.TradesConsumed.Inc()
 				if done := agg.Add(t); done != nil {
 					if err := db.UpsertCandle(ctx, *done); err != nil {
 						slog.Error("upsert candle", "symbol", done.Symbol, "err", err)
+						metrics.DBErrors.WithLabelValues("candle").Inc()
+					} else {
+						metrics.CandlesPersisted.Inc()
 					}
 				}
 			})
