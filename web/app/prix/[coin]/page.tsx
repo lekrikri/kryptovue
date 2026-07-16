@@ -65,31 +65,34 @@ export default async function CoinPage({
 
       <nav className="text-sm text-gray-500">
         <Link href="/" className="hover:text-brand">
-          Cours
+          Marché
         </Link>{" "}
         / <span className="text-gray-700">{coin.name}</span>
       </nav>
 
-      <section className="flex flex-wrap items-center gap-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={coinIcon(coin.ticker)}
-          alt={coin.name}
-          width={56}
-          height={56}
-          className="h-14 w-14 rounded-full"
-        />
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold sm:text-3xl">
-            {coin.name} <span className="text-gray-400">{coin.ticker}</span>
-          </h1>
-          <div className="mt-1 flex items-center gap-3">
-            <span className="font-mono text-3xl font-bold tabular-nums">
-              {price !== undefined ? formatPrice(price) : "—"}
-            </span>
-            <ChangeBadge pct={pct} />
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-700 via-teal-800 to-terminal px-6 py-8 text-white shadow-xl sm:px-8">
+        <div className="relative z-10 flex flex-wrap items-center gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coinIcon(coin.ticker)}
+            alt={coin.name}
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-full bg-white/10 p-1"
+          />
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold sm:text-3xl">
+              {coin.name} <span className="text-white/50">{coin.ticker}</span>
+            </h1>
+            <div className="mt-1 flex items-center gap-3">
+              <span className="font-mono text-3xl font-bold tabular-nums">
+                {price !== undefined ? formatPrice(price) : "—"}
+              </span>
+              <ChangeBadge pct={pct} />
+            </div>
           </div>
         </div>
+        <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl" />
       </section>
 
       <section className="grid grid-cols-3 gap-3">
