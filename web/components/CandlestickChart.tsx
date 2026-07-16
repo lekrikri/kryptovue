@@ -20,23 +20,23 @@ export function CandlestickChart({ candles }: { candles: Candle[] }) {
     const chart: IChartApi = createChart(container, {
       autoSize: true,
       layout: {
-        background: { color: "#ffffff" },
-        textColor: "#334155",
+        background: { color: "#0c111b" },
+        textColor: "#64748b",
       },
       grid: {
-        vertLines: { color: "#f1f5f9" },
-        horzLines: { color: "#f1f5f9" },
+        vertLines: { color: "#1b2635" },
+        horzLines: { color: "#1b2635" },
       },
-      timeScale: { timeVisible: true, borderColor: "#e2e8f0" },
-      rightPriceScale: { borderColor: "#e2e8f0" },
+      timeScale: { timeVisible: true, borderColor: "#1b2635" },
+      rightPriceScale: { borderColor: "#1b2635" },
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: "#16a34a",
-      downColor: "#dc2626",
+      upColor: "#34d399",
+      downColor: "#f87171",
       borderVisible: false,
-      wickUpColor: "#16a34a",
-      wickDownColor: "#dc2626",
+      wickUpColor: "#34d399",
+      wickDownColor: "#f87171",
     });
 
     series.setData(
@@ -55,8 +55,8 @@ export function CandlestickChart({ candles }: { candles: Candle[] }) {
 
   if (candles.length === 0) {
     return (
-      <div className="flex h-[360px] items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-400">
-        Pas encore de données de marché — le graphique se remplira en direct.
+      <div className="flex h-[360px] items-center justify-center rounded-lg border border-line bg-panel text-sm text-gray-500">
+        {"// awaiting market data — le graphique se remplira en direct"}
       </div>
     );
   }
@@ -64,7 +64,7 @@ export function CandlestickChart({ candles }: { candles: Candle[] }) {
   return (
     <div
       ref={containerRef}
-      className="h-[360px] w-full rounded-xl border border-gray-200 bg-white p-2"
+      className="h-[360px] w-full rounded-lg border border-line bg-panel p-2"
     />
   );
 }

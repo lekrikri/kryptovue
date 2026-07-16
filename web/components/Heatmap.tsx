@@ -16,27 +16,32 @@ export function Heatmap({ changes }: { changes: Record<string, Candle[]> }) {
         const intensity = Math.min(Math.abs(pct) / 5, 1); // sature à ±5 %
         const bg =
           pct >= 0
-            ? `rgba(22, 163, 74, ${0.12 + intensity * 0.55})`
-            : `rgba(220, 38, 38, ${0.12 + intensity * 0.55})`;
+            ? `rgba(52, 211, 153, ${0.06 + intensity * 0.4})`
+            : `rgba(248, 113, 113, ${0.06 + intensity * 0.4})`;
+        const ring = pct >= 0 ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)";
         return (
           <Link
             key={coin.symbol}
             href={`/prix/${coin.slug}`}
-            className="flex flex-col justify-between gap-3 rounded-2xl border border-black/5 p-4 text-gray-900 shadow-sm transition-transform hover:scale-[1.03]"
-            style={{ backgroundColor: bg }}
+            className="flex flex-col justify-between gap-3 rounded-lg border p-4 text-white transition-transform hover:scale-[1.03]"
+            style={{ backgroundColor: bg, borderColor: ring }}
           >
             <div className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={coinIcon(coin.ticker)}
                 alt={coin.name}
-                width={24}
-                height={24}
-                className="h-6 w-6 rounded-full"
+                width={22}
+                height={22}
+                className="h-[22px] w-[22px] rounded-full ring-1 ring-line"
               />
-              <span className="text-sm font-semibold">{coin.ticker}</span>
+              <span className="text-xs font-semibold tracking-wider">
+                {coin.ticker}
+              </span>
             </div>
-            <div className="text-lg font-bold tabular-nums">
+            <div
+              className={`text-lg font-bold tabular-nums ${pct >= 0 ? "text-up" : "text-down"}`}
+            >
               {formatChange(pct)}
             </div>
           </Link>

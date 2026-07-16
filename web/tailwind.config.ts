@@ -5,15 +5,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        up: "#16a34a",
-        down: "#ef4444",
-        brand: "#10b981",
-        "brand-dark": "#059669",
-        terminal: "#0b1220",
-        "terminal-soft": "#111a2e",
+        up: "#34d399",
+        down: "#f87171",
+        accent: "#2dd4bf", // teal terminal
+        cyan: "#22d3ee",
+        bg: "#080b11", // fond terminal
+        panel: "#0c111b", // panneaux
+        "panel-2": "#0f1622",
+        line: "#1b2635", // bordures
       },
       fontFamily: {
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        mono: [
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          "monospace",
+        ],
       },
     },
   },

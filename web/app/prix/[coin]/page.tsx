@@ -63,14 +63,14 @@ export default async function CoinPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <nav className="text-sm text-gray-500">
-        <Link href="/" className="hover:text-brand">
-          Marché
+      <nav className="text-[11px] tracking-widest text-gray-500">
+        <Link href="/" className="hover:text-accent">
+          MARCHÉS
         </Link>{" "}
-        / <span className="text-gray-700">{coin.name}</span>
+        / <span className="text-gray-300">{coin.ticker}_SPOT</span>
       </nav>
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-700 via-teal-800 to-terminal px-6 py-8 text-white shadow-xl sm:px-8">
+      <section className="relative overflow-hidden rounded-xl border border-line bg-panel p-6 sm:p-8">
         <div className="relative z-10 flex flex-wrap items-center gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -78,41 +78,43 @@ export default async function CoinPage({
             alt={coin.name}
             width={56}
             height={56}
-            className="h-14 w-14 rounded-full bg-white/10 p-1"
+            className="h-14 w-14 rounded-full ring-1 ring-line"
           />
           <div className="flex-1">
-            <h1 className="text-2xl font-bold sm:text-3xl">
-              {coin.name} <span className="text-white/50">{coin.ticker}</span>
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">
+              {coin.name}{" "}
+              <span className="text-sm tracking-widest text-gray-500">
+                {coin.ticker}/USDT
+              </span>
             </h1>
             <div className="mt-1 flex items-center gap-3">
-              <span className="font-mono text-3xl font-bold tabular-nums">
+              <span className="text-3xl font-bold tabular-nums text-white">
                 {price !== undefined ? formatPrice(price) : "—"}
               </span>
               <ChangeBadge pct={pct} />
             </div>
           </div>
         </div>
-        <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
       </section>
 
       <section className="grid grid-cols-3 gap-3">
-        <MiniStat label="Plus haut" value={high !== null ? formatPrice(high) : "—"} />
-        <MiniStat label="Plus bas" value={low !== null ? formatPrice(low) : "—"} />
+        <MiniStat label="HIGH_24H" value={high !== null ? formatPrice(high) : "—"} />
+        <MiniStat label="LOW_24H" value={low !== null ? formatPrice(low) : "—"} />
         <MiniStat
-          label="Volume"
+          label="VOL_SCAN"
           value={volume ? `${volume.toFixed(2)} ${coin.ticker}` : "—"}
         />
       </section>
 
       <CandlestickChart candles={candles} />
 
-      <section className="prose prose-sm max-w-none text-gray-600">
+      <section className="max-w-none text-sm text-gray-500">
         <p>
-          Cette page suit le cours du {coin.name} ({coin.ticker}) en temps réel
-          à partir des transactions du marché. Le graphique en bougies affiche
-          l&apos;ouverture, le plus haut, le plus bas et la clôture par minute.
-          Les informations sont fournies à titre éducatif et ne constituent pas
-          un conseil en investissement.
+          {"// "}Cette page suit le cours du {coin.name} ({coin.ticker}) en temps
+          réel à partir des transactions du marché. Le graphique en bougies
+          affiche l&apos;ouverture, le plus haut, le plus bas et la clôture par
+          minute. Informations à but éducatif — aucun conseil en investissement.
         </p>
       </section>
     </div>
@@ -121,9 +123,11 @@ export default async function CoinPage({
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
-      <div className="text-xs uppercase tracking-wide text-gray-400">{label}</div>
-      <div className="mt-1 font-mono text-sm font-semibold tabular-nums text-gray-900">
+    <div className="rounded-lg border border-line bg-panel px-4 py-3">
+      <div className="text-[10px] uppercase tracking-widest text-gray-500">
+        {label}
+      </div>
+      <div className="mt-1 text-sm font-semibold tabular-nums text-white">
         {value}
       </div>
     </div>

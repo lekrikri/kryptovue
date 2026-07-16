@@ -18,79 +18,78 @@ export interface Row {
   spark: number[];
 }
 
-// PriceTable affiche le top des cryptos. Prix initiaux en SSR (props),
-// remplacés en direct par le flux SSE.
+// PriceTable : LIVE_FEED. Prix initiaux en SSR, remplacés en direct par le SSE.
 export function PriceTable({ rows }: { rows: Row[] }) {
   const live = useTradeStream();
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-line bg-panel">
       <table className="w-full text-left">
-        <thead className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
+        <thead className="border-b border-line text-[10px] uppercase tracking-widest text-gray-500">
           <tr>
-            <th className="px-4 py-3 font-medium sm:px-6">Actif</th>
-            <th className="px-4 py-3 text-right font-medium sm:px-6">Prix</th>
-            <th className="px-4 py-3 text-right font-medium sm:px-6">Var. 24 h</th>
-            <th className="hidden px-6 py-3 text-right font-medium lg:table-cell">
-              Tendance (7 j)
+            <th className="px-4 py-3 font-medium sm:px-5">ASSET_IDENT</th>
+            <th className="px-4 py-3 text-right font-medium sm:px-5">VAL_UNIT (USD)</th>
+            <th className="px-4 py-3 text-right font-medium sm:px-5">VAR_24H</th>
+            <th className="hidden px-5 py-3 text-right font-medium lg:table-cell">
+              TND_7D_SCAN
             </th>
-            <th className="hidden px-6 py-3 text-right font-medium sm:table-cell">
-              Action
+            <th className="hidden px-5 py-3 text-right font-medium sm:table-cell">
+              OPS
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-line/60">
           {rows.map((row) => {
             const livePrice = live[row.symbol];
             const price = livePrice ?? row.price;
             const isLive = livePrice !== undefined;
             return (
-              <tr key={row.symbol} className="group transition-colors hover:bg-gray-50/80">
-                <td className="px-4 py-4 sm:px-6">
+              <tr key={row.symbol} className="group transition-colors hover:bg-panel-2">
+                <td className="px-4 py-3.5 sm:px-5">
                   <Link href={`/prix/${row.slug}`} className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={coinIcon(row.ticker)}
                       alt={row.name}
-                      width={32}
-                      height={32}
-                      className="h-8 w-8 rounded-full"
+                      width={28}
+                      height={28}
+                      className="h-7 w-7 rounded-full ring-1 ring-line"
                       loading="lazy"
                     />
-                    <span className="flex flex-col">
-                      <span className="font-semibold text-gray-900 group-hover:text-brand">
+                    <span className="flex flex-col leading-tight">
+                      <span className="text-sm font-semibold text-white group-hover:text-accent">
                         {row.name}
                       </span>
-                      <span className="text-xs uppercase text-gray-400">
-                        {row.ticker}
+                      <span className="text-[10px] uppercase tracking-wider text-gray-500">
+                        {row.ticker} · SPOT
                       </span>
                     </span>
                     {isLive && (
                       <span
-                        className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-up"
-                        title="Temps réel"
+                        className="ml-1 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-accent"
+                        title="LIVE"
                       />
                     )}
                   </Link>
                 </td>
-                <td className="px-4 py-4 text-right font-mono text-sm font-medium tabular-nums text-gray-900 sm:px-6">
+                <td className="px-4 py-3.5 text-right text-sm font-medium tabular-nums text-white sm:px-5">
                   {price !== null ? formatPrice(price) : "—"}
                 </td>
-                <td className="px-4 py-4 text-right sm:px-6">
+                <td className="px-4 py-3.5 text-right sm:px-5">
                   <ChangeBadge pct={row.changePct} />
                 </td>
-                <td className="hidden px-6 py-4 lg:table-cell">
+                <td className="hidden px-5 py-3.5 lg:table-cell">
                   <div className="flex justify-end">
                     <Sparkline
                       values={row.spark}
-                      color={row.changePct >= 0 ? "#16a34a" : "#ef4444"}
+                      color={row.changePct >= 0 ? "#34d399" : "#f87171"}
                     />
                   </div>
                 </td>
-                <td className="hidden px-6 py-4 text-right sm:table-cell">
+                <td className="hidden px-5 py-3.5 text-right sm:table-cell">
                   <span
-                    className="text-gray-300 transition-colors hover:text-amber-400"
-                    title="Ajouter aux favoris"
+                    className="text-gray-600 transition-colors hover:text-accent"
+                    title="Watchlist"
                     aria-hidden
                   >
                     ★

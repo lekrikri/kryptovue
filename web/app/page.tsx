@@ -10,87 +10,87 @@ export default async function HomePage() {
   const rows = await buildRows();
   const gainers = rows.filter((r) => r.changePct > 0).length;
   const losers = rows.length - gainers;
-  const avgChange =
-    rows.reduce((s, r) => s + r.changePct, 0) / (rows.length || 1);
+  const avgChange = rows.reduce((s, r) => s + r.changePct, 0) / (rows.length || 1);
   const btc = rows.find((r) => r.symbol === "btcusdt");
   const sentiment = Math.round((gainers / (rows.length || 1)) * 100);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Hero terminal */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-700 via-teal-800 to-terminal px-6 py-9 text-white shadow-xl sm:px-10">
-        <div className="relative z-10 grid gap-8 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+      <section className="relative overflow-hidden rounded-xl border border-line bg-panel p-6 sm:p-8">
+        <div className="mb-5 text-[11px] tracking-widest text-accent">
+          <span className="mr-1 inline-block h-2 w-2 animate-pulse rounded-full bg-accent align-middle" />
+          {"// TERMINAL_STATUS: ONLINE // LATENCY: 0.2MS"}
+        </div>
+        <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-center">
           <div className="space-y-4">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-              Données en direct · Binance
-            </span>
-            <h1 className="text-3xl font-bold leading-tight sm:text-4xl">
-              Le radar crypto{" "}
-              <span
-                className="text-transparent"
-                style={{ WebkitTextStroke: "1px rgba(255,255,255,0.55)" }}
-              >
-                intelligent
-              </span>
+            <h1 className="text-4xl font-bold leading-none tracking-tight text-white sm:text-5xl">
+              TERMINAL VISION:
+              <br />
+              <span className="italic text-accent">ALPHA-SCAN</span>
             </h1>
-            <p className="max-w-md text-white/70">
-              Analysez les flux du marché mondial en temps réel. Un terminal
-              francophone conçu pour la clarté, sans inscription.
+            <p className="max-w-md text-sm text-gray-400">
+              {"> protocole initialisé. analyse des flux de liquidité mondiaux. "}
+              {"correspondance des coordonnées en cours."}
             </p>
             <div className="flex flex-wrap gap-3 pt-1">
               <Link
-                href="#marche"
-                className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-terminal transition-colors hover:bg-emerald-400"
+                href="#feed"
+                className="rounded-md bg-accent px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-bg transition-colors hover:bg-teal-300"
               >
-                Ouvrir le terminal
+                Initialize Terminal
               </Link>
               <Link
                 href="/heatmap"
-                className="rounded-xl border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                className="rounded-md border border-line px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-gray-300 transition-colors hover:border-accent hover:text-accent"
               >
-                Heatmap globale
+                Global Heatmap
               </Link>
             </div>
           </div>
 
-          <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur sm:grid-cols-2 lg:grid-cols-1">
+          <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-3">
-              <Pill label="Bitcoin" value={btc?.price ? formatPrice(btc.price) : "—"} />
-              <Pill
-                label="Variation moy. 24 h"
+              <Panel label="BTC_LAST" value={btc?.price ? formatPrice(btc.price) : "—"} sub="SPOT // BINANCE" />
+              <Panel
+                label="AVG_DELTA_24H"
                 value={formatChange(avgChange)}
-                accent={avgChange >= 0 ? "text-emerald-400" : "text-red-400"}
+                sub={`${gainers}/${rows.length} ASSETS_UP`}
+                accent={avgChange >= 0 ? "text-up" : "text-down"}
               />
             </div>
-            <div className="rounded-xl bg-white/5 p-3">
+            <div className="rounded-lg border border-line bg-panel-2 p-4">
               <SentimentGauge value={sentiment} />
             </div>
           </div>
         </div>
-
-        <div className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
       </section>
 
       {/* Cartes stats */}
-      <section className="grid grid-cols-3 gap-3 sm:gap-4">
-        <StatCard label="Actifs suivis" value={`${rows.length}`} hint="Gestion personnalisée" />
-        <StatCard label="En hausse" value={`${gainers}`} accent="text-up" hint="sur 24 h" up />
-        <StatCard label="En baisse" value={`${losers}`} accent="text-down" hint="sur 24 h" />
+      <section className="grid grid-cols-3 gap-3">
+        <StatCard label="ASSETS_ACT" value={`${rows.length}`} sub="MANUAL_CTRL_V3" />
+        <StatCard label="GAINERS_PRT" value={`${gainers}`} sub="+NET_DELTA" accent="text-up" />
+        <StatCard label="LOSERS_PRT" value={`${losers}`} sub="-NET_DELTA" accent="text-down" />
       </section>
 
-      {/* Tableau du marché */}
-      <section id="marche" className="space-y-3">
+      {/* LIVE_FEED */}
+      <section id="feed" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Cours du marché en direct
-          </h2>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-gray-600">
-              Par capitalisation
+          <div>
+            <h2 className="text-sm font-bold tracking-widest text-white">
+              LIVE_FEED :: MARKET_OS
+            </h2>
+            <p className="text-[11px] tracking-wide text-gray-500">
+              {"// data output cycle: enabled // realtime modification active"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] tracking-widest">
+            <span className="rounded border border-line bg-panel px-3 py-1.5 text-gray-400">
+              ↕ BY_CAP
             </span>
-            <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-medium text-gray-600">
-              Filtres
+            <span className="rounded border border-line bg-panel px-3 py-1.5 text-gray-400">
+              ⚙ FILTERS_01
             </span>
           </div>
         </div>
@@ -100,23 +100,24 @@ export default async function HomePage() {
   );
 }
 
-function Pill({
+function Panel({
   label,
   value,
+  sub,
   accent = "text-white",
 }: {
   label: string;
   value: string;
+  sub: string;
   accent?: string;
 }) {
   return (
-    <div className="rounded-xl bg-white/5 p-3">
-      <div className="text-[11px] uppercase tracking-wide text-white/50">
+    <div className="rounded-lg border border-line bg-panel-2 p-3">
+      <div className="text-[10px] uppercase tracking-widest text-gray-500">
         {label}
       </div>
-      <div className={`mt-1 font-mono text-lg font-bold tabular-nums ${accent}`}>
-        {value}
-      </div>
+      <div className={`mt-1 text-lg font-bold tabular-nums ${accent}`}>{value}</div>
+      <div className="mt-0.5 text-[10px] tracking-wider text-gray-600">{sub}</div>
     </div>
   );
 }
@@ -124,30 +125,23 @@ function Pill({
 function StatCard({
   label,
   value,
-  hint,
-  accent = "text-gray-900",
-  up,
+  sub,
+  accent = "text-white",
 }: {
   label: string;
   value: string;
-  hint: string;
+  sub: string;
   accent?: string;
-  up?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-wide text-gray-400">
-          {label}
-        </span>
-        <span className={up ? "text-up" : accent}>
-          {up ? "▲" : label === "En baisse" ? "▼" : "•"}
-        </span>
+    <div className="rounded-lg border border-line bg-panel p-4">
+      <div className="text-[10px] uppercase tracking-widest text-gray-500">
+        {label}
       </div>
-      <div className={`mt-1 text-2xl font-bold tabular-nums ${accent}`}>
+      <div className={`mt-2 text-3xl font-bold tabular-nums ${accent}`}>
         {value}
       </div>
-      <div className="mt-0.5 text-xs text-gray-400">{hint}</div>
+      <div className="mt-1 text-[10px] tracking-wider text-gray-600">{sub}</div>
     </div>
   );
 }
