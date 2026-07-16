@@ -1,0 +1,82 @@
+name: kryptovue
+
+# Stack de production. Les images sont publiées par la CD sur GHCR.
+# Override du tag via la variable d'env IMAGE_TAG (défaut: latest).
+# Démarrage : IMAGE_TAG=<sha> docker compose -f docker-compose.prod.yml up -d
+
+x-service-env: &service-env
+  KAFKA_BROKERS: redpanda:9092
+  KAFKA_TRADES_TOPIC: crypto.trades
+  DATABASE_URL: postgres://kryptovue:${POSTGRES_PASSWORD:-kryptovue}@timescaledb:5432/kryptovue
+
+services:
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.2.7
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://0.0.0.0:9092
+      - --advertise-kafka-addr internal://redpanda:9092
+      - --mode dev-container
+      - --smp 1
+      - --memory 1G
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -q 'Healthy:.*true'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: kryptovue
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kryptovue}
+      POSTGRES_DB: kryptovue
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kryptovue"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ingester:
+    image: ghcr.io/lekrikri/kryptovue-ingester:${IMAGE_TAG:-latest}
+    environment: *service-env
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    restart: unless-stopped
+
+  aggregator:
+    image: ghcr.io/lekrikri/kryptovue-aggregator:${IMAGE_TAG:-latest}
+    environment: *service-env
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/lekrikri/kryptovue-api:${IMAGE_TAG:-latest}
+    environment:
+      <<: *service-env
+      API_PORT: "8080"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  redpanda-data:
+  timescale-data:

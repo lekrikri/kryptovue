@@ -1,0 +1,10 @@
+.git
+.github
+crypto_viz_app
+docs
+specs
+_archive
+*.md
+Makefile
+deploy
+**/*_test.go

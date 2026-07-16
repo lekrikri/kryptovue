@@ -1,5 +1,8 @@
 # KryptoVue 🇫🇷
 
+[![CI](https://github.com/lekrikri/kryptovue/actions/workflows/ci.yml/badge.svg)](https://github.com/lekrikri/kryptovue/actions/workflows/ci.yml)
+[![CD](https://github.com/lekrikri/kryptovue/actions/workflows/cd.yml/badge.svg)](https://github.com/lekrikri/kryptovue/actions/workflows/cd.yml)
+
 > Real-time crypto market radar for the French-speaking market — live prices, aggregated
 > French crypto news, AI-powered sentiment & alerts.
 
@@ -50,6 +53,34 @@ curl -N localhost:8080/api/v1/stream        # SSE live trades
 ```
 
 Run `make ci` (vet + test + build) before pushing.
+
+## CI/CD
+
+Two GitHub Actions pipelines:
+
+- **CI** (`ci.yml`) — on every push and PR: `gofmt` check, `go vet`, `staticcheck`,
+  race-enabled tests, `go build`, and a Docker build of all three services (validation,
+  no push). Merges to `main` are gated on green CI.
+- **CD** (`cd.yml`) — on push to `main` (and `v*` tags): builds and pushes the three
+  service images to **GitHub Container Registry** (`ghcr.io/lekrikri/kryptovue-*`),
+  tagged with the commit sha, `latest`, and the semver on tags. A final `deploy` job
+  SSHes into the VPS and runs `docker compose pull && up -d` — it stays dormant until
+  the repo variable `DEPLOY_ENABLED=true` and the SSH secrets are set.
+
+### Deploy to a VPS
+
+```bash
+# On the server, once:
+git clone git@github.com:lekrikri/kryptovue.git && cd kryptovue
+export POSTGRES_PASSWORD=<strong-password>
+IMAGE_TAG=latest docker compose -f deploy/docker-compose.prod.yml up -d
+```
+
+To enable automated deploys, set repo variable `DEPLOY_ENABLED=true` and secrets
+`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_APP_DIR`.
+
+Images are built from a single multi-stage [`Dockerfile`](Dockerfile) (distroless,
+non-root, ~35 MB) selected via `--build-arg SERVICE=ingester|aggregator|api`.
 
 ## Roadmap
 

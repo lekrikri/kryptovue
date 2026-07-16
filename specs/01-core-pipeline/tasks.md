@@ -29,6 +29,8 @@ Pipeline validé de bout en bout en local :
   déclarés (test de régression `ws_test.go` sur un payload réel capturé).
 
 ## Reste à faire (dette, Phase 1.5)
-- [ ] Dockeriser les 3 services Go (multi-stage) pour le déploiement Phase 5
+- [x] Dockeriser les 3 services Go (Dockerfile multi-stage distroless, ~35 Mo)
+- [x] CI/CD complet (GitHub Actions) : lint/test/build + build & push images GHCR + deploy VPS
+- [x] `docker-compose.prod.yml` (images GHCR, healthchecks, restart policies)
 - [ ] Backfill historique CoinGecko au démarrage (bougies avant le premier tick live)
 - [ ] Métriques Prometheus (trades/s, lag consumer) — décidé au benchmark IA
