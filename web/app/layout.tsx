@@ -20,16 +20,25 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        <header className="border-b border-gray-200 bg-white">
+        <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/80 backdrop-blur">
           <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-            <Link href="/" className="text-lg font-bold text-brand">
-              Krypto<span className="text-gray-900">Vue</span>
+            <Link href="/" className="flex items-center gap-2 text-lg font-bold">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 text-sm text-white">
+                K
+              </span>
+              <span>
+                <span className="text-brand">Krypto</span>
+                <span className="text-gray-900">Vue</span>
+              </span>
             </Link>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <Link href="/" className="hover:text-brand">
+            <div className="flex items-center gap-1 text-sm font-medium text-gray-600">
+              <Link href="/" className="rounded-lg px-3 py-1.5 hover:bg-gray-100 hover:text-brand">
                 Cours
               </Link>
-              <Link href="/heatmap" className="hover:text-brand">
+              <Link
+                href="/heatmap"
+                className="rounded-lg px-3 py-1.5 hover:bg-gray-100 hover:text-brand"
+              >
                 Heatmap
               </Link>
             </div>

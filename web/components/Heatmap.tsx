@@ -1,11 +1,9 @@
-"use client";
-
 import Link from "next/link";
-import { COINS } from "@/lib/coins";
+import { COINS, coinIcon } from "@/lib/coins";
 import { changePercent, formatChange } from "@/lib/format";
 import type { Candle } from "@/lib/types";
 
-// Heatmap : une tuile par crypto, couleur selon la variation sur la fenêtre de bougies.
+// Heatmap : une tuile par crypto, couleur selon la variation sur la fenêtre.
 export function Heatmap({ changes }: { changes: Record<string, Candle[]> }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -18,17 +16,27 @@ export function Heatmap({ changes }: { changes: Record<string, Candle[]> }) {
         const intensity = Math.min(Math.abs(pct) / 5, 1); // sature à ±5 %
         const bg =
           pct >= 0
-            ? `rgba(22, 163, 74, ${0.15 + intensity * 0.6})`
-            : `rgba(220, 38, 38, ${0.15 + intensity * 0.6})`;
+            ? `rgba(22, 163, 74, ${0.12 + intensity * 0.55})`
+            : `rgba(220, 38, 38, ${0.12 + intensity * 0.55})`;
         return (
           <Link
             key={coin.symbol}
             href={`/prix/${coin.slug}`}
-            className="flex flex-col justify-between rounded-xl p-4 text-gray-900 transition-transform hover:scale-[1.02]"
+            className="flex flex-col justify-between gap-3 rounded-2xl border border-black/5 p-4 text-gray-900 shadow-sm transition-transform hover:scale-[1.03]"
             style={{ backgroundColor: bg }}
           >
-            <div className="text-sm font-semibold">{coin.ticker}</div>
-            <div className="mt-2 text-lg font-bold tabular-nums">
+            <div className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coinIcon(coin.ticker)}
+                alt={coin.name}
+                width={24}
+                height={24}
+                className="h-6 w-6 rounded-full"
+              />
+              <span className="text-sm font-semibold">{coin.ticker}</span>
+            </div>
+            <div className="text-lg font-bold tabular-nums">
               {formatChange(pct)}
             </div>
           </Link>

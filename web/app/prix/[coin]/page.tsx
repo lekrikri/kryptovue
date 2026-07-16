@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { fetchCandles } from "@/lib/api";
-import { coinBySlug, COINS } from "@/lib/coins";
+import { coinBySlug, coinIcon, COINS } from "@/lib/coins";
 import { changePercent, formatPrice } from "@/lib/format";
 import { ChangeBadge } from "@/components/ChangeBadge";
 import { CandlestickChart } from "@/components/CandlestickChart";
@@ -44,6 +44,9 @@ export default async function CoinPage({
     candles.length >= 2
       ? changePercent(candles[0].open, candles[candles.length - 1].close)
       : 0;
+  const high = candles.length ? Math.max(...candles.map((c) => c.high)) : null;
+  const low = candles.length ? Math.min(...candles.map((c) => c.low)) : null;
+  const volume = candles.reduce((s, c) => s + c.volume, 0);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -67,19 +70,35 @@ export default async function CoinPage({
         / <span className="text-gray-700">{coin.name}</span>
       </nav>
 
-      <section className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      <section className="flex flex-wrap items-center gap-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={coinIcon(coin.ticker)}
+          alt={coin.name}
+          width={56}
+          height={56}
+          className="h-14 w-14 rounded-full"
+        />
+        <div className="flex-1">
           <h1 className="text-2xl font-bold sm:text-3xl">
-            Cours du {coin.name}{" "}
-            <span className="text-gray-400">{coin.ticker}</span>
+            {coin.name} <span className="text-gray-400">{coin.ticker}</span>
           </h1>
-          <div className="mt-2 flex items-center gap-3">
+          <div className="mt-1 flex items-center gap-3">
             <span className="font-mono text-3xl font-bold tabular-nums">
               {price !== undefined ? formatPrice(price) : "—"}
             </span>
             <ChangeBadge pct={pct} />
           </div>
         </div>
+      </section>
+
+      <section className="grid grid-cols-3 gap-3">
+        <MiniStat label="Plus haut" value={high !== null ? formatPrice(high) : "—"} />
+        <MiniStat label="Plus bas" value={low !== null ? formatPrice(low) : "—"} />
+        <MiniStat
+          label="Volume"
+          value={volume ? `${volume.toFixed(2)} ${coin.ticker}` : "—"}
+        />
       </section>
 
       <CandlestickChart candles={candles} />
@@ -93,6 +112,17 @@ export default async function CoinPage({
           un conseil en investissement.
         </p>
       </section>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
+      <div className="text-xs uppercase tracking-wide text-gray-400">{label}</div>
+      <div className="mt-1 font-mono text-sm font-semibold tabular-nums text-gray-900">
+        {value}
+      </div>
     </div>
   );
 }
