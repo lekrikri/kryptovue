@@ -28,3 +28,27 @@ export function formatCompactUSD(value: number): string {
   if (abs >= 1e6) return `${(value / 1e6).toFixed(1)}M $`;
   return `${value.toFixed(0)} $`;
 }
+
+export type Currency = "usd" | "eur";
+
+// Prix converti et formaté dans la devise choisie (valeurs sources en USD).
+export function formatMoney(value: number, currency: Currency, rate: number): string {
+  const v = currency === "eur" ? value * rate : value;
+  const digits = v >= 1000 ? 2 : v >= 1 ? 2 : v >= 0.01 ? 4 : 6;
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: currency === "eur" ? "EUR" : "USD",
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(v);
+}
+
+export function formatCompact(value: number, currency: Currency, rate: number): string {
+  const v = currency === "eur" ? value * rate : value;
+  const sym = currency === "eur" ? "€" : "$";
+  const abs = Math.abs(v);
+  if (abs >= 1e12) return `${(v / 1e12).toFixed(2)}T ${sym}`;
+  if (abs >= 1e9) return `${(v / 1e9).toFixed(1)}B ${sym}`;
+  if (abs >= 1e6) return `${(v / 1e6).toFixed(1)}M ${sym}`;
+  return `${v.toFixed(0)} ${sym}`;
+}

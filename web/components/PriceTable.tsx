@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { coinIcon } from "@/lib/coins";
-import { formatCompactUSD, formatPrice } from "@/lib/format";
+import { formatCompact, formatMoney, type Currency } from "@/lib/format";
 import { ChangeBadge } from "@/components/ChangeBadge";
 import { Sparkline } from "@/components/Sparkline";
 import { useTradeStream } from "@/hooks/useTradeStream";
+import { useEurRate } from "@/hooks/useEurRate";
 
 export interface Row {
   symbol: string;
@@ -22,9 +24,31 @@ export interface Row {
 // PriceTable : LIVE_FEED. Prix initiaux en SSR, remplacés en direct par le SSE.
 export function PriceTable({ rows }: { rows: Row[] }) {
   const live = useTradeStream();
+  const rate = useEurRate();
+  const [ccy, setCcy] = useState<Currency>("usd");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("kv_ccy");
+    if (saved === "eur" || saved === "usd") setCcy(saved);
+  }, []);
+
+  function toggleCcy() {
+    const next: Currency = ccy === "usd" ? "eur" : "usd";
+    setCcy(next);
+    localStorage.setItem("kv_ccy", next);
+  }
 
   return (
     <div className="overflow-hidden rounded-lg border border-line bg-panel">
+      <div className="flex items-center justify-end border-b border-line px-4 py-2">
+        <button
+          onClick={toggleCcy}
+          className="rounded border border-line px-2.5 py-1 text-[10px] font-bold tracking-widest text-gray-400 hover:border-accent hover:text-accent"
+          title="Changer de devise"
+        >
+          {ccy === "usd" ? "USD → EUR" : "EUR → USD"}
+        </button>
+      </div>
       <table className="w-full text-left">
         <thead className="border-b border-line text-[10px] uppercase tracking-widest text-gray-500">
           <tr>
@@ -77,13 +101,13 @@ export function PriceTable({ rows }: { rows: Row[] }) {
                   </Link>
                 </td>
                 <td className="px-4 py-3.5 text-right text-sm font-medium tabular-nums text-white sm:px-5">
-                  {price !== null ? formatPrice(price) : "—"}
+                  {price !== null ? formatMoney(price, ccy, rate) : "—"}
                 </td>
                 <td className="px-4 py-3.5 text-right sm:px-5">
                   <ChangeBadge pct={row.changePct} />
                 </td>
                 <td className="hidden px-5 py-3.5 text-right text-sm tabular-nums text-gray-400 md:table-cell">
-                  {row.marketCap ? formatCompactUSD(row.marketCap) : "—"}
+                  {row.marketCap ? formatCompact(row.marketCap, ccy, rate) : "—"}
                 </td>
                 <td className="hidden px-5 py-3.5 lg:table-cell">
                   <div className="flex justify-end">
