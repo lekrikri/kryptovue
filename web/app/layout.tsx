@@ -74,7 +74,12 @@ export default function RootLayout({
             />
             <FooterCol
               title="RESOURCES"
-              links={["Glossaire", "Guides", "System status", "API"]}
+              links={[
+                { label: "Glossaire", href: "/glossaire" },
+                { label: "Guides", href: "/guides" },
+                { label: "Alertes", href: "/alertes" },
+                { label: "Heatmap", href: "/heatmap" },
+              ]}
             />
             <FooterCol
               title="LEGAL"
@@ -93,16 +98,28 @@ export default function RootLayout({
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: string[] }) {
+type FooterLink = string | { label: string; href: string };
+
+function FooterCol({ title, links }: { title: string; links: FooterLink[] }) {
   return (
     <div>
       <div className="text-[11px] tracking-widest text-accent/60">{title}</div>
       <ul className="mt-3 space-y-2 text-gray-400">
-        {links.map((l) => (
-          <li key={l}>
-            <span className="cursor-default hover:text-accent">{l}</span>
-          </li>
-        ))}
+        {links.map((l) => {
+          const label = typeof l === "string" ? l : l.label;
+          const href = typeof l === "string" ? null : l.href;
+          return (
+            <li key={label}>
+              {href ? (
+                <Link href={href} className="hover:text-accent">
+                  {label}
+                </Link>
+              ) : (
+                <span className="cursor-default hover:text-accent">{label}</span>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
