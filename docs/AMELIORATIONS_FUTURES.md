@@ -7,19 +7,24 @@
 
 ---
 
-## 0. Où on en est (rappel)
+## 0. Où on en est (rappel — mis à jour 2026-07-17)
 
 **Déjà livré, testé, CI/CD verte :**
 - Pipeline Go temps réel : Binance WS → Redpanda → aggregator (candles OHLCV) → TimescaleDB → API REST + SSE
+- **Backfill historique** (`cmd/backfill`, Binance klines) → graphiques longs + réactions news
 - Front Next.js « Terminal Vision » (thème dark/mono issu de Stitch) : prix live, bougies, heatmap, pages SEO
-- IA : sentiment news FR (lexique + **Qwen local**), **résumé quotidien** généré par Qwen
-- Algos quant (Go) : RSI/MACD/moyennes/volatilité, détection d'anomalies (z-score), indice **Bruit vs Signal** (FOMO), réactions prix aux news
+- IA : sentiment news FR (lexique + **Qwen local**), **résumé quotidien** Qwen, **alertes en langage naturel** (Qwen)
+- Algos quant (Go) : RSI/MACD/moyennes/volatilité, **anomalies** (z-score), **Bruit vs Signal** (FOMO), **réactions prix aux news**, **matrice de corrélation** (Pearson)
 - Données CoinGecko : market cap, dominance BTC, cap totale
-- **Alertes Telegram** (moteur de règles prix/variation/anomalie)
-- **SEO** : glossaire (10 termes), guides, sitemap, robots, manifest PWA, mode débutant
+- **Alertes Telegram** (règles prix/variation/anomalie + langage naturel)
+- **SEO** : pages /prix, /actus (par crypto), glossaire, guides, sitemap, robots, PWA, mode débutant
 - Devise EUR/USD, observabilité Prometheus/Grafana, Docker + GHCR
 
-**Services :** 6 binaires Go (`ingester`, `aggregator`, `api`, `metadata`, `alerter`) + 1 worker Python (`ai-worker`).
+**Services :** 6 binaires Go (`ingester`, `aggregator`, `api`, `metadata`, `alerter`, `backfill`) + 1 worker Python (`ai-worker`).
+
+**Reste à faire des axes déjà identifiés :** comptes/auth, Stripe, déploiement Hetzner,
+newsletter, bot Twitter, alerte Scams AMF, chatbot RAG, catégorisation news, plus de cryptos,
+backtesting, analytics produit, app Flutter, Redis/rate-limit, migrations versionnées, tests d'intégration.
 
 ---
 
@@ -138,6 +143,36 @@
 ### 5.5 App Flutter mobile (rétention)
 - Reprendre l'app existante (1 écran, SSE, notifications push d'alertes) une fois le web stabilisé.
 - **Effort** : élevé · **Impact** : rétention + différenciateur CV (fullstack + mobile).
+
+---
+
+## 5bis. 🆕 Nouveaux axes (émergés en cours de route)
+
+### Produit
+- **Watchlist fonctionnelle** : l'étoile ★ du tableau est décorative — la rendre active
+  (favoris persistés). Effort faible, forte rétention.
+- **Portfolio en lecture seule** : saisir ses avoirs, suivre la valeur et la P/L (sans custody).
+- **Notifications push web (PWA)** : étendre les alertes au navigateur (le manifest existe déjà).
+- **Comparateur de cryptos** (`/comparer/btc-vs-eth`) : pages SEO à fort potentiel.
+
+### IA (combinaisons des briques existantes)
+- **« Pourquoi ça bouge ? »** : quand une **anomalie** est détectée, Qwen génère une explication
+  courte à partir des **news récentes** du token. Combine anomalie + news + LLM — très démonstratif.
+- **Alerte langage naturel → création directe** : aujourd'hui le parsing pré-remplit le
+  formulaire ; on peut créer l'alerte directement + confirmation.
+
+### Données / technique
+- **Rafraîchir les agrégats continus** : après un backfill, `candles_1h`/`candles_1d` ne
+  couvrent pas l'historique (fenêtre de refresh limitée). Ajouter un `refresh_continuous_aggregate`
+  pour des graphiques 1h/1d complets. *(dette technique identifiée)*
+- **Order book / funding rates** (Binance) : profondeur de marché, vrai « terminal ».
+- **API publique documentée (OpenAPI/Swagger)** : signal CV + ouverture B2B.
+
+### Stabilité / DevOps (émergé du terrain)
+- **`docker-compose.dev-full.yml`** : lancer TOUTE la stack en conteneurs en local
+  (`restart: unless-stopped`) au lieu de `go run`/`next start` fragiles. Répétition idéale
+  avant Hetzner. *(recommandé en premier — évite les « le front est retombé »)*
+- **Audit Lighthouse / perf & accessibilité** du front : polish CV.
 
 ---
 
