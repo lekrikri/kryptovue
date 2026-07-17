@@ -26,10 +26,17 @@ export function PriceTable({ rows }: { rows: Row[] }) {
   const live = useTradeStream();
   const rate = useEurRate();
   const [ccy, setCcy] = useState<Currency>("usd");
+  const [watch, setWatch] = useState<string[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("kv_ccy");
     if (saved === "eur" || saved === "usd") setCcy(saved);
+    try {
+      const w = JSON.parse(localStorage.getItem("kv_watchlist") ?? "[]");
+      if (Array.isArray(w)) setWatch(w);
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   function toggleCcy() {
@@ -37,6 +44,23 @@ export function PriceTable({ rows }: { rows: Row[] }) {
     setCcy(next);
     localStorage.setItem("kv_ccy", next);
   }
+
+  function toggleWatch(symbol: string) {
+    setWatch((prev) => {
+      const next = prev.includes(symbol)
+        ? prev.filter((s) => s !== symbol)
+        : [...prev, symbol];
+      localStorage.setItem("kv_watchlist", JSON.stringify(next));
+      return next;
+    });
+  }
+
+  // Favoris en tête, ordre d'origine préservé sinon.
+  const ordered = [...rows].sort((a, b) => {
+    const fa = watch.includes(a.symbol) ? 0 : 1;
+    const fb = watch.includes(b.symbol) ? 0 : 1;
+    return fa - fb;
+  });
 
   return (
     <div className="overflow-hidden rounded-lg border border-line bg-panel">
@@ -67,7 +91,7 @@ export function PriceTable({ rows }: { rows: Row[] }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-line/60">
-          {rows.map((row) => {
+          {ordered.map((row) => {
             const livePrice = live[row.symbol];
             const price = livePrice ?? row.price;
             const isLive = livePrice !== undefined;
@@ -118,13 +142,18 @@ export function PriceTable({ rows }: { rows: Row[] }) {
                   </div>
                 </td>
                 <td className="hidden px-5 py-3.5 text-right sm:table-cell">
-                  <span
-                    className="text-gray-600 transition-colors hover:text-accent"
-                    title="Watchlist"
-                    aria-hidden
+                  <button
+                    onClick={() => toggleWatch(row.symbol)}
+                    className={`transition-colors ${
+                      watch.includes(row.symbol)
+                        ? "text-amber-400"
+                        : "text-gray-600 hover:text-accent"
+                    }`}
+                    title={watch.includes(row.symbol) ? "Retirer des favoris" : "Ajouter aux favoris"}
+                    aria-label="watchlist"
                   >
                     ★
-                  </span>
+                  </button>
                 </td>
               </tr>
             );

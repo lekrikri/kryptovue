@@ -34,11 +34,15 @@ func Available() bool {
 }
 
 func chat(ctx context.Context, messages []map[string]string) (string, error) {
+	return chatN(ctx, messages, 120)
+}
+
+func chatN(ctx context.Context, messages []map[string]string, maxTokens int) (string, error) {
 	payload, _ := json.Marshal(map[string]any{
 		"model":       model(),
 		"messages":    messages,
-		"temperature": 0,
-		"max_tokens":  120,
+		"temperature": 0.2,
+		"max_tokens":  maxTokens,
 	})
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
 		baseURL()+"/chat/completions", bytes.NewReader(payload))
@@ -69,6 +73,29 @@ func chat(ctx context.Context, messages []map[string]string) (string, error) {
 		return "", fmt.Errorf("réponse llm vide")
 	}
 	return body.Choices[0].Message.Content, nil
+}
+
+// ExplainMove génère une explication factuelle d'un mouvement de prix à partir
+// des actualités récentes. Strictement descriptif (aucune prédiction/conseil).
+func ExplainMove(ctx context.Context, coinName string, changePct float64, newsTitles []string) (string, error) {
+	if len(newsTitles) == 0 {
+		return "Aucune actualité récente ne semble liée à ce mouvement.", nil
+	}
+	system := "Tu es analyste crypto. On te donne la variation récente d'un actif et des " +
+		"titres d'actualités FR. Explique en 1 à 2 phrases, en français, ce qui, dans ces " +
+		"actualités, pourrait être lié au mouvement. Base-toi UNIQUEMENT sur les titres " +
+		"fournis ; si rien n'est clairement lié, dis-le simplement. STRICTEMENT " +
+		"informationnel : aucune prédiction, aucun conseil. Pas de titre, juste le texte."
+	user := fmt.Sprintf("%s : variation récente de %+.2f %%.\nActualités :\n- %s",
+		coinName, changePct, strings.Join(newsTitles, "\n- "))
+	raw, err := chatN(ctx, []map[string]string{
+		{"role": "system", "content": system},
+		{"role": "user", "content": user},
+	}, 200)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(raw), nil
 }
 
 // ParsedAlert est le résultat structuré du parsing d'une phrase.

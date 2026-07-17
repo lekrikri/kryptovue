@@ -11,6 +11,7 @@ import { changePercent, formatPrice } from "@/lib/format";
 import { ChangeBadge } from "@/components/ChangeBadge";
 import { CandlestickChart } from "@/components/CandlestickChart";
 import { TechScan } from "@/components/TechScan";
+import { WhyMove } from "@/components/WhyMove";
 import { NewsFeed } from "@/components/NewsFeed";
 
 export const revalidate = 30;
@@ -125,6 +126,8 @@ export default async function CoinPage({
       <CandlestickChart candles={candles} />
 
       {indicators && indicators.points >= 2 && <TechScan ind={indicators} />}
+
+      <WhyMove symbol={coin.symbol} />
 
       <section className="space-y-3">
         <h2 className="text-sm font-bold tracking-widest text-white">

@@ -278,6 +278,30 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"data": analytics.Compute(symbol, candles)})
 	})
 
+	// « Pourquoi ça bouge ? » : explication IA (Qwen) d'un mouvement à partir des news.
+	router.GET("/api/v1/why/:symbol", func(c *gin.Context) {
+		ctx := c.Request.Context()
+		symbol := c.Param("symbol")
+		change := 0.0
+		if meta, err := db.CoinMetaAll(ctx); err == nil {
+			if m, ok := meta[symbol]; ok {
+				change = m.Change24h
+			}
+		}
+		news, _ := db.NewsBySymbol(ctx, symbol, 5)
+		titles := make([]string, 0, len(news))
+		for _, n := range news {
+			titles = append(titles, n.Title)
+		}
+		name := strings.ToUpper(strings.TrimSuffix(symbol, "usdt"))
+		expl, err := llm.ExplainMove(ctx, name, change, titles)
+		if err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "analyse IA indisponible"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": gin.H{"explanation": expl, "change_24h": change}})
+	})
+
 	router.GET("/api/v1/news-impact/:symbol", func(c *gin.Context) {
 		ctx := c.Request.Context()
 		symbol := c.Param("symbol")
