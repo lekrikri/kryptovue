@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { buildRows } from "@/lib/rows";
-import { fetchBrief, fetchNews } from "@/lib/api";
+import { fetchBrief, fetchNews, fetchNoiseSignal } from "@/lib/api";
 import { formatChange, formatPrice } from "@/lib/format";
 import { PriceTable } from "@/components/PriceTable";
 import { SentimentGauge } from "@/components/SentimentGauge";
 import { NewsFeed } from "@/components/NewsFeed";
+import { NoiseSignalPanel } from "@/components/NoiseSignalPanel";
 
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const [rows, news, brief] = await Promise.all([
+  const [rows, news, brief, noise] = await Promise.all([
     buildRows(),
     fetchNews(8),
     fetchBrief(),
+    fetchNoiseSignal(),
   ]);
   const gainers = rows.filter((r) => r.changePct > 0).length;
   const losers = rows.length - gainers;
@@ -117,6 +119,21 @@ export default async function HomePage() {
         </div>
         <PriceTable rows={rows} />
       </section>
+
+      {/* BRUIT vs SIGNAL */}
+      {noise.length > 0 && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-bold tracking-widest text-white">
+              NOISE_SIGNAL :: FOMO_RADAR
+            </h2>
+            <p className="text-[11px] tracking-wide text-gray-500">
+              {"// activité médiatique FR (média) vs mouvement de prix — repère le hype"}
+            </p>
+          </div>
+          <NoiseSignalPanel items={noise} />
+        </section>
+      )}
 
       {/* NEWS_FEED */}
       <section className="space-y-3">

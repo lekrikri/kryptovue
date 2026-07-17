@@ -185,6 +185,28 @@ func (s *Store) LatestBrief(ctx context.Context) (model.Brief, bool, error) {
 	return b, true, nil
 }
 
+// NewsCountByCoin retourne le nombre d'actus par symbole sur les dernières `hours`.
+func (s *Store) NewsCountByCoin(ctx context.Context, hours int) (map[string]int, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT coin, count(*) FROM news, unnest(coins) AS coin
+		WHERE published_at > now() - make_interval(hours => $1)
+		GROUP BY coin`, hours)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[string]int)
+	for rows.Next() {
+		var coin string
+		var n int
+		if err := rows.Scan(&coin, &n); err != nil {
+			return nil, err
+		}
+		out[coin] = n
+	}
+	return out, rows.Err()
+}
+
 // SentimentBySymbol agrège le sentiment moyen par symbole sur 48 h glissantes.
 func (s *Store) SentimentBySymbol(ctx context.Context) ([]model.Sentiment, error) {
 	rows, err := s.pool.Query(ctx, `

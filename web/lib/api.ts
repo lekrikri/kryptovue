@@ -3,6 +3,7 @@ import type {
   Candle,
   Indicators,
   News,
+  NoiseSignal,
   Price,
   Sentiment,
 } from "./types";
@@ -65,6 +66,15 @@ export async function fetchNewsBySymbol(symbol: string, limit = 6): Promise<News
       `/api/v1/news/${symbol}?limit=${limit}`,
       60,
     );
+    return body.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchNoiseSignal(): Promise<NoiseSignal[]> {
+  try {
+    const body = await getJSON<ListResponse<NoiseSignal>>("/api/v1/noise-signal", 60);
     return body.data ?? [];
   } catch {
     return [];

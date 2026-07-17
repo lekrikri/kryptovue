@@ -81,3 +81,13 @@ type Indicators struct {
 	AnomalyNote string  `json:"anomaly_note"`  // description FR si anomalie
 	Points      int     `json:"points"`        // nb de bougies utilisées
 }
+
+// NoiseSignal croise l'activité médiatique FR et la volatilité prix (indice FOMO).
+type NoiseSignal struct {
+	Symbol     string  `json:"symbol"`
+	NewsCount  int     `json:"news_count"` // actus mentionnant le symbole (24 h)
+	Volatility float64 `json:"volatility"` // % sur la dernière heure
+	Buzz       int     `json:"buzz"`       // niveau de bruit médiatique 0-100
+	Move       int     `json:"move"`       // niveau de mouvement prix 0-100
+	Label      string  `json:"label"`      // BRUIT | SIGNAL | ACTIF | CALME
+}

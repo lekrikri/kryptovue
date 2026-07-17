@@ -48,6 +48,15 @@ export interface Brief {
   created_at: string;
 }
 
+export interface NoiseSignal {
+  symbol: string;
+  news_count: number;
+  volatility: number;
+  buzz: number;
+  move: number;
+  label: "BRUIT" | "SIGNAL" | "ACTIF" | "CALME";
+}
+
 export interface Indicators {
   symbol: string;
   rsi: number;

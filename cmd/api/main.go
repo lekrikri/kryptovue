@@ -20,6 +20,7 @@ import (
 	"github.com/lekrikri/kryptovue/internal/analytics"
 	"github.com/lekrikri/kryptovue/internal/config"
 	"github.com/lekrikri/kryptovue/internal/metrics"
+	"github.com/lekrikri/kryptovue/internal/model"
 	"github.com/lekrikri/kryptovue/internal/store"
 )
 
@@ -143,6 +144,34 @@ func main() {
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{"data": analytics.Compute(symbol, candles)})
+	})
+
+	router.GET("/api/v1/noise-signal", func(c *gin.Context) {
+		ctx := c.Request.Context()
+		counts, err := db.NewsCountByCoin(ctx, 24)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		out := make([]model.NoiseSignal, 0, len(cfg.Symbols))
+		for _, sym := range cfg.Symbols {
+			candles, _ := db.Candles(ctx, sym, "1m", 60)
+			closes := make([]float64, len(candles))
+			for i, cd := range candles {
+				closes[i] = cd.Close
+			}
+			vol := analytics.Volatility(closes)
+			buzz, move, label := analytics.BuzzIndex(counts[sym], vol)
+			out = append(out, model.NoiseSignal{
+				Symbol:     sym,
+				NewsCount:  counts[sym],
+				Volatility: vol,
+				Buzz:       buzz,
+				Move:       move,
+				Label:      label,
+			})
+		}
+		c.JSON(http.StatusOK, gin.H{"data": out, "count": len(out)})
 	})
 
 	router.GET("/api/v1/brief", func(c *gin.Context) {

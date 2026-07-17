@@ -66,3 +66,24 @@ func round(v float64, digits int) float64 {
 	p := math.Pow(10, float64(digits))
 	return math.Round(v*p) / p
 }
+
+// BuzzIndex croise l'activité médiatique et la volatilité pour distinguer le
+// « bruit » (hype médiatique sans mouvement) du « signal » (vrai mouvement).
+// Descriptif : ne prédit rien, décrit l'état présent.
+func BuzzIndex(newsCount int, volatilityPct float64) (buzz, move int, label string) {
+	buzzF := math.Min(float64(newsCount)/5.0, 1) * 100 // 5+ actus = bruit max
+	moveF := math.Min(volatilityPct/1.0, 1) * 100      // 1 % de volatilité = mouvement max
+	buzz = int(math.Round(buzzF))
+	move = int(math.Round(moveF))
+	switch {
+	case buzz >= 60 && move < 40:
+		label = "BRUIT" // beaucoup d'actus, peu de mouvement
+	case move >= 60:
+		label = "SIGNAL" // mouvement de marché marqué
+	case buzz >= 60 && move >= 40:
+		label = "ACTIF"
+	default:
+		label = "CALME"
+	}
+	return buzz, move, label
+}
