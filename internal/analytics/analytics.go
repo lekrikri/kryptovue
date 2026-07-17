@@ -142,6 +142,43 @@ func ZScore(values []float64) float64 {
 	return (values[n-1] - m) / sd
 }
 
+// Returns transforme une série de clôtures en rendements successifs.
+func Returns(closes []float64) []float64 {
+	out := make([]float64, 0, len(closes))
+	for i := 1; i < len(closes); i++ {
+		if closes[i-1] != 0 {
+			out = append(out, (closes[i]-closes[i-1])/closes[i-1])
+		}
+	}
+	return out
+}
+
+// Pearson calcule le coefficient de corrélation de Pearson entre deux séries
+// (alignées par la fin, longueur = min des deux). Retourne 0 si dégénéré.
+func Pearson(a, b []float64) float64 {
+	n := len(a)
+	if len(b) < n {
+		n = len(b)
+	}
+	if n < 2 {
+		return 0
+	}
+	a = a[len(a)-n:]
+	b = b[len(b)-n:]
+	ma, mb := mean(a), mean(b)
+	var num, da, db float64
+	for i := 0; i < n; i++ {
+		x, y := a[i]-ma, b[i]-mb
+		num += x * y
+		da += x * x
+		db += y * y
+	}
+	if da == 0 || db == 0 {
+		return 0
+	}
+	return num / math.Sqrt(da*db)
+}
+
 // RSIZone traduit le RSI en libellé descriptif (pédagogique, non prescriptif).
 func RSIZone(rsi float64) string {
 	switch {

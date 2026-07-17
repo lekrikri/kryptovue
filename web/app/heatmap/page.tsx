@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { fetchCandles } from "@/lib/api";
+import { fetchCandles, fetchCorrelations } from "@/lib/api";
 import { COINS } from "@/lib/coins";
 import { Heatmap } from "@/components/Heatmap";
+import { CorrelationMatrix } from "@/components/CorrelationMatrix";
 import type { Candle } from "@/lib/types";
 
 export const revalidate = 60;
@@ -13,12 +14,15 @@ export const metadata: Metadata = {
 };
 
 export default async function HeatmapPage() {
-  const entries = await Promise.all(
-    COINS.map(
-      async (coin) =>
-        [coin.symbol, await fetchCandles(coin.symbol, "1m", 60)] as const,
+  const [entries, correlations] = await Promise.all([
+    Promise.all(
+      COINS.map(
+        async (coin) =>
+          [coin.symbol, await fetchCandles(coin.symbol, "1m", 60)] as const,
+      ),
     ),
-  );
+    fetchCorrelations(),
+  ]);
   const changes: Record<string, Candle[]> = Object.fromEntries(entries);
 
   return (
@@ -39,6 +43,20 @@ export default async function HeatmapPage() {
         <div className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
       </section>
       <Heatmap changes={changes} />
+
+      {correlations && correlations.symbols.length > 1 && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-bold tracking-widest text-white">
+              CORRELATION :: MATRIX
+            </h2>
+            <p className="text-[11px] tracking-wide text-gray-500">
+              {"// corrélation des rendements — vert = évoluent ensemble, rouge = en sens inverse"}
+            </p>
+          </div>
+          <CorrelationMatrix data={correlations} />
+        </section>
+      )}
     </div>
   );
 }

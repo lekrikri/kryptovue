@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"log/slog"
+	"math"
 	"net/http"
 	"os"
 	"os/signal"
@@ -265,6 +266,28 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"data": out, "count": len(out)})
 	})
 
+	router.GET("/api/v1/correlations", func(c *gin.Context) {
+		ctx := c.Request.Context()
+		syms := cfg.Symbols
+		returns := make([][]float64, len(syms))
+		for i, sym := range syms {
+			candles, _ := db.Candles(ctx, sym, "1m", 500) // ~8 h en 1m
+			closes := make([]float64, len(candles))
+			for j, cd := range candles {
+				closes[j] = cd.Close
+			}
+			returns[i] = analytics.Returns(closes)
+		}
+		matrix := make([][]float64, len(syms))
+		for i := range syms {
+			matrix[i] = make([]float64, len(syms))
+			for j := range syms {
+				matrix[i][j] = round2(analytics.Pearson(returns[i], returns[j]))
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"data": model.Correlations{Symbols: syms, Matrix: matrix}})
+	})
+
 	router.GET("/api/v1/noise-signal", func(c *gin.Context) {
 		ctx := c.Request.Context()
 		counts, err := db.NewsCountByCoin(ctx, 24)
@@ -357,6 +380,8 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+func round2(v float64) float64 { return math.Round(v*100) / 100 }
 
 // metricsMiddleware enregistre le nombre et la latence des requêtes HTTP.
 // La route est prise depuis c.FullPath() (motif, ex "/api/v1/candles/:symbol")

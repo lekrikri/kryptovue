@@ -2,6 +2,7 @@ import type {
   Brief,
   Candle,
   CoinMeta,
+  Correlations,
   GlobalMeta,
   Indicators,
   News,
@@ -84,6 +85,18 @@ export async function fetchNewsImpact(symbol: string): Promise<NewsImpact[]> {
     return body.data ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function fetchCorrelations(): Promise<Correlations | null> {
+  try {
+    const body = await getJSON<{ data: Correlations | null }>(
+      "/api/v1/correlations",
+      120,
+    );
+    return body.data;
+  } catch {
+    return null;
   }
 }
 

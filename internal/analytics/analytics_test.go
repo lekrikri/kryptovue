@@ -81,6 +81,20 @@ func TestZScoreDetectsSpike(t *testing.T) {
 	}
 }
 
+func TestPearson(t *testing.T) {
+	a := []float64{1, 2, 3, 4, 5}
+	if got := Pearson(a, a); !approx(got, 1, 1e-9) {
+		t.Errorf("corrélation avec soi-même : attendu 1, reçu %v", got)
+	}
+	b := []float64{5, 4, 3, 2, 1}
+	if got := Pearson(a, b); !approx(got, -1, 1e-9) {
+		t.Errorf("corrélation inverse : attendu -1, reçu %v", got)
+	}
+	if got := Pearson([]float64{1}, []float64{1}); got != 0 {
+		t.Errorf("série trop courte : attendu 0, reçu %v", got)
+	}
+}
+
 func TestRSIZone(t *testing.T) {
 	if RSIZone(75) != "surachat" || RSIZone(25) != "survente" || RSIZone(50) != "neutre" {
 		t.Error("RSIZone mal calibré")

@@ -48,6 +48,11 @@ export interface Brief {
   created_at: string;
 }
 
+export interface Correlations {
+  symbols: string[];
+  matrix: number[][];
+}
+
 export interface GlobalMeta {
   total_market_cap: number;
   btc_dominance: number;

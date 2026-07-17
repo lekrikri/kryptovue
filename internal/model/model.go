@@ -106,6 +106,12 @@ type NewsImpact struct {
 	ImpactPct *float64 `json:"impact_pct,omitempty"` // variation en %
 }
 
+// Correlations : matrice de corrélation des rendements entre actifs.
+type Correlations struct {
+	Symbols []string    `json:"symbols"`
+	Matrix  [][]float64 `json:"matrix"`
+}
+
 // NoiseSignal croise l'activité médiatique FR et la volatilité prix (indice FOMO).
 type NoiseSignal struct {
 	Symbol     string  `json:"symbol"`
