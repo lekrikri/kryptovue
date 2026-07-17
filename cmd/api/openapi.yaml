@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: KryptoVue API
+  version: "1.0"
+  description: >
+    API du terminal crypto francophone KryptoVue : cours temps réel, indicateurs,
+    actualités FR + sentiment, alertes. Strictement informationnel — aucun conseil
+    en investissement.
+servers:
+  - url: /
+paths:
+  /health:
+    get:
+      summary: État de santé du service
+      responses:
+        "200": { description: OK }
+  /api/v1/prices:
+    get:
+      summary: Dernier prix de chaque crypto
+      responses:
+        "200": { description: Liste des prix }
+  /api/v1/candles/{symbol}:
+    get:
+      summary: Bougies OHLCV
+      parameters:
+        - { name: symbol, in: path, required: true, schema: { type: string, example: btcusdt } }
+        - { name: interval, in: query, schema: { type: string, enum: [1m, 1h, 1d], default: 1m } }
+        - { name: limit, in: query, schema: { type: integer, default: 500 } }
+      responses:
+        "200": { description: Bougies }
+  /api/v1/stream:
+    get:
+      summary: Flux SSE des trades en direct (text/event-stream)
+      responses:
+        "200": { description: Flux SSE }
+  /api/v1/global:
+    get:
+      summary: Capitalisation totale et dominance BTC
+      responses:
+        "200": { description: Métadonnées globales }
+  /api/v1/market-meta:
+    get:
+      summary: Market cap et variation 24h par actif
+      responses:
+        "200": { description: Métadonnées par actif }
+  /api/v1/indicators/{symbol}:
+    get:
+      summary: Indicateurs techniques + anomalie (RSI, MACD, moyennes, volatilité, z-score)
+      parameters:
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Indicateurs }
+  /api/v1/correlations:
+    get:
+      summary: Matrice de corrélation des rendements entre actifs
+      responses:
+        "200": { description: Matrice }
+  /api/v1/noise-signal:
+    get:
+      summary: Indice Bruit vs Signal (activité médiatique vs volatilité)
+      responses:
+        "200": { description: Indice par actif }
+  /api/v1/news:
+    get:
+      summary: Actualités crypto FR récentes (avec sentiment)
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 30 } }
+      responses:
+        "200": { description: Actualités }
+  /api/v1/news/{symbol}:
+    get:
+      summary: Actualités mentionnant un actif
+      parameters:
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Actualités du symbole }
+  /api/v1/news-impact/{symbol}:
+    get:
+      summary: Réaction du prix (+1 h) autour de chaque actualité
+      parameters:
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Impacts }
+  /api/v1/sentiment:
+    get:
+      summary: Sentiment agrégé par crypto (48 h)
+      responses:
+        "200": { description: Sentiment par actif }
+  /api/v1/brief:
+    get:
+      summary: Résumé quotidien du marché (généré par LLM local)
+      responses:
+        "200": { description: Résumé }
+  /api/v1/why/{symbol}:
+    get:
+      summary: Explication IA d'un mouvement de prix à partir des actualités
+      parameters:
+        - { name: symbol, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Explication }
+  /api/v1/alerts:
+    get:
+      summary: Liste des alertes d'une cible
+      parameters:
+        - { name: target, in: query, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Alertes }
+    post:
+      summary: Créer une alerte
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target_addr: { type: string }
+                symbol: { type: string, example: btcusdt }
+                rule_type: { type: string, enum: [price_above, price_below, change_above, anomaly] }
+                threshold: { type: number }
+      responses:
+        "201": { description: Créée }
+  /api/v1/alerts/parse:
+    post:
+      summary: Convertir une phrase FR en règle d'alerte (LLM local)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: { type: string, example: "préviens-moi si le bitcoin dépasse 70000 dollars" }
+      responses:
+        "200": { description: Règle structurée }
+  /api/v1/alerts/{id}:
+    delete:
+      summary: Supprimer une alerte
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+        - { name: target, in: query, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Supprimée }

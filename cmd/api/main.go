@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -27,6 +28,17 @@ import (
 	"github.com/lekrikri/kryptovue/internal/model"
 	"github.com/lekrikri/kryptovue/internal/store"
 )
+
+//go:embed openapi.yaml
+var openapiSpec []byte
+
+const swaggerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>KryptoVue API</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+</head><body><div id="swagger"></div>
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>window.onload=()=>SwaggerUIBundle({url:'/openapi.yaml',dom_id:'#swagger'});</script>
+</body></html>`
 
 // alertCatalog associe des noms/tickers FR au symbole, pour le parsing en langage naturel.
 var alertCatalog = map[string]string{
@@ -94,6 +106,14 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Recovery(), corsMiddleware(), metricsMiddleware())
+
+	// Documentation de l'API (spec OpenAPI + UI Swagger).
+	router.GET("/openapi.yaml", func(c *gin.Context) {
+		c.Data(http.StatusOK, "application/yaml", openapiSpec)
+	})
+	router.GET("/docs", func(c *gin.Context) {
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(swaggerHTML))
+	})
 
 	router.GET("/health", func(c *gin.Context) {
 		status := "healthy"
