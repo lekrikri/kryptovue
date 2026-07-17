@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/twmb/franz-go/pkg/kgo"
 
+	"github.com/lekrikri/kryptovue/internal/alert"
 	"github.com/lekrikri/kryptovue/internal/analytics"
 	"github.com/lekrikri/kryptovue/internal/config"
 	"github.com/lekrikri/kryptovue/internal/metrics"
@@ -126,6 +127,69 @@ func main() {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"data": news, "count": len(news)})
+	})
+
+	// --- Alertes ---
+	router.POST("/api/v1/alerts", func(c *gin.Context) {
+		var body struct {
+			TargetType string  `json:"target_type"`
+			TargetAddr string  `json:"target_addr"`
+			Symbol     string  `json:"symbol"`
+			RuleType   string  `json:"rule_type"`
+			Threshold  float64 `json:"threshold"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+			return
+		}
+		if body.TargetType == "" {
+			body.TargetType = "telegram"
+		}
+		if body.TargetAddr == "" || body.Symbol == "" || !alert.ValidType(body.RuleType) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "target_addr, symbol et rule_type valides requis"})
+			return
+		}
+		id, err := db.CreateAlert(c.Request.Context(), alert.Rule{
+			TargetType: body.TargetType,
+			TargetAddr: body.TargetAddr,
+			Symbol:     body.Symbol,
+			RuleType:   body.RuleType,
+			Threshold:  body.Threshold,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		c.JSON(http.StatusCreated, gin.H{"id": id})
+	})
+
+	router.GET("/api/v1/alerts", func(c *gin.Context) {
+		addr := c.Query("target")
+		if addr == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "paramètre target requis"})
+			return
+		}
+		rules, err := db.AlertsByTarget(c.Request.Context(), addr)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": rules, "count": len(rules)})
+	})
+
+	router.DELETE("/api/v1/alerts/:id", func(c *gin.Context) {
+		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+		addr := c.Query("target")
+		ok, err := db.DeleteAlert(c.Request.Context(), id, addr)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		if !ok {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"deleted": id})
 	})
 
 	router.GET("/api/v1/global", func(c *gin.Context) {

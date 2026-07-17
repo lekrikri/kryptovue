@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/lekrikri/kryptovue/internal/alert"
 	"github.com/lekrikri/kryptovue/internal/model"
 )
 
@@ -183,6 +184,68 @@ func (s *Store) LatestBrief(ctx context.Context) (model.Brief, bool, error) {
 		return b, false, err
 	}
 	return b, true, nil
+}
+
+// CreateAlert insère une règle d'alerte et retourne son id.
+func (s *Store) CreateAlert(ctx context.Context, r alert.Rule) (int64, error) {
+	var id int64
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO alerts (target_type, target_addr, symbol, rule_type, threshold)
+		VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+		r.TargetType, r.TargetAddr, r.Symbol, r.RuleType, r.Threshold).Scan(&id)
+	return id, err
+}
+
+// ActiveAlerts retourne toutes les règles actives.
+func (s *Store) ActiveAlerts(ctx context.Context) ([]alert.Rule, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, target_type, target_addr, symbol, rule_type, threshold, active, last_triggered
+		FROM alerts WHERE active ORDER BY id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanAlerts(rows)
+}
+
+// AlertsByTarget liste les règles d'une cible (pour l'utilisateur).
+func (s *Store) AlertsByTarget(ctx context.Context, targetAddr string) ([]alert.Rule, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, target_type, target_addr, symbol, rule_type, threshold, active, last_triggered
+		FROM alerts WHERE target_addr = $1 ORDER BY id DESC`, targetAddr)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanAlerts(rows)
+}
+
+func scanAlerts(rows pgx.Rows) ([]alert.Rule, error) {
+	var out []alert.Rule
+	for rows.Next() {
+		var r alert.Rule
+		if err := rows.Scan(&r.ID, &r.TargetType, &r.TargetAddr, &r.Symbol,
+			&r.RuleType, &r.Threshold, &r.Active, &r.LastTriggered); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+// MarkAlertTriggered met à jour l'horodatage du dernier déclenchement.
+func (s *Store) MarkAlertTriggered(ctx context.Context, id int64, at time.Time) error {
+	_, err := s.pool.Exec(ctx, `UPDATE alerts SET last_triggered = $2 WHERE id = $1`, id, at)
+	return err
+}
+
+// DeleteAlert supprime une règle appartenant à la cible donnée (autorisation simple).
+func (s *Store) DeleteAlert(ctx context.Context, id int64, targetAddr string) (bool, error) {
+	tag, err := s.pool.Exec(ctx, `DELETE FROM alerts WHERE id = $1 AND target_addr = $2`, id, targetAddr)
+	if err != nil {
+		return false, err
+	}
+	return tag.RowsAffected() > 0, nil
 }
 
 // UpsertCoinMeta met à jour les métadonnées d'un actif.

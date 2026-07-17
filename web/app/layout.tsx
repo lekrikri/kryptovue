@@ -28,7 +28,7 @@ function Logo() {
 const NAV = [
   { href: "/", label: "MARCHÉS" },
   { href: "/heatmap", label: "HEATMAP" },
-  { href: "/", label: "PORTFOLIO" },
+  { href: "/alertes", label: "ALERTES" },
 ];
 
 export default function RootLayout({

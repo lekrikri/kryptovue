@@ -27,6 +27,9 @@ run-api:
 run-metadata:
 	go run ./cmd/metadata
 
+run-alerter:
+	go run ./cmd/alerter
+
 # --- Qualité ---
 vet:
 	go vet ./...
