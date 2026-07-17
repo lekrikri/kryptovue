@@ -82,6 +82,15 @@ type Indicators struct {
 	Points      int     `json:"points"`        // nb de bougies utilisées
 }
 
+// NewsImpact décrit la réaction du prix autour d'une actualité (descriptif, passé).
+type NewsImpact struct {
+	News      News     `json:"news"`
+	HasImpact bool     `json:"has_impact"`
+	PriceAt   *float64 `json:"price_at,omitempty"`   // prix à l'heure de publication
+	PriceNext *float64 `json:"price_next,omitempty"` // prix ~1 h plus tard
+	ImpactPct *float64 `json:"impact_pct,omitempty"` // variation en %
+}
+
 // NoiseSignal croise l'activité médiatique FR et la volatilité prix (indice FOMO).
 type NoiseSignal struct {
 	Symbol     string  `json:"symbol"`

@@ -48,6 +48,14 @@ export interface Brief {
   created_at: string;
 }
 
+export interface NewsImpact {
+  news: News;
+  has_impact: boolean;
+  price_at?: number;
+  price_next?: number;
+  impact_pct?: number;
+}
+
 export interface NoiseSignal {
   symbol: string;
   news_count: number;

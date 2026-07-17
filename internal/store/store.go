@@ -185,6 +185,24 @@ func (s *Store) LatestBrief(ctx context.Context) (model.Brief, bool, error) {
 	return b, true, nil
 }
 
+// CloseNear retourne la clôture 1m la plus proche (± tolérance) d'un instant t.
+func (s *Store) CloseNear(ctx context.Context, symbol string, t time.Time, tolMinutes int) (float64, bool, error) {
+	var c float64
+	err := s.pool.QueryRow(ctx, `
+		SELECT close FROM candles_1m
+		WHERE symbol = $1 AND bucket_start BETWEEN $2 - make_interval(mins => $3)
+		                                       AND $2 + make_interval(mins => $3)
+		ORDER BY abs(extract(epoch FROM bucket_start - $2))
+		LIMIT 1`, symbol, t, tolMinutes).Scan(&c)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return 0, false, nil
+		}
+		return 0, false, err
+	}
+	return c, true, nil
+}
+
 // NewsCountByCoin retourne le nombre d'actus par symbole sur les dernières `hours`.
 func (s *Store) NewsCountByCoin(ctx context.Context, hours int) (map[string]int, error) {
 	rows, err := s.pool.Query(ctx, `

@@ -146,6 +146,32 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"data": analytics.Compute(symbol, candles)})
 	})
 
+	router.GET("/api/v1/news-impact/:symbol", func(c *gin.Context) {
+		ctx := c.Request.Context()
+		symbol := c.Param("symbol")
+		news, err := db.NewsBySymbol(ctx, symbol, 8)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		out := make([]model.NewsImpact, 0, len(news))
+		for _, n := range news {
+			imp := model.NewsImpact{News: n}
+			// Prix ± 5 min autour de la publication, et ~1 h après.
+			at, okA, _ := db.CloseNear(ctx, symbol, n.PublishedAt, 5)
+			next, okB, _ := db.CloseNear(ctx, symbol, n.PublishedAt.Add(time.Hour), 5)
+			if okA && okB && at != 0 {
+				pct := (next - at) / at * 100
+				imp.HasImpact = true
+				imp.PriceAt = &at
+				imp.PriceNext = &next
+				imp.ImpactPct = &pct
+			}
+			out = append(out, imp)
+		}
+		c.JSON(http.StatusOK, gin.H{"data": out, "count": len(out)})
+	})
+
 	router.GET("/api/v1/noise-signal", func(c *gin.Context) {
 		ctx := c.Request.Context()
 		counts, err := db.NewsCountByCoin(ctx, 24)

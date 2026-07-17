@@ -21,7 +21,13 @@ function timeAgo(iso: string): string {
   return `il y a ${Math.floor(h / 24)} j`;
 }
 
-export function NewsFeed({ news }: { news: News[] }) {
+export function NewsFeed({
+  news,
+  impacts,
+}: {
+  news: News[];
+  impacts?: Record<string, number>;
+}) {
   if (news.length === 0) {
     return (
       <div className="rounded-lg border border-line bg-panel p-6 text-sm text-gray-500">
@@ -46,6 +52,14 @@ export function NewsFeed({ news }: { news: News[] }) {
               <span>{timeAgo(n.published_at)}</span>
             </div>
             <div className="text-sm text-gray-200 hover:text-accent">{n.title}</div>
+            {impacts && impacts[n.id] !== undefined && (
+              <div className="mt-1.5 inline-flex items-center gap-1 text-[10px] tracking-wider">
+                <span className="text-gray-500">RÉACTION_PRIX_1H ::</span>
+                <span className={impacts[n.id] >= 0 ? "text-up" : "text-down"}>
+                  {impacts[n.id] >= 0 ? "▲" : "▼"} {impacts[n.id].toFixed(2)} %
+                </span>
+              </div>
+            )}
             {n.coins.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {n.coins.map((c) => (

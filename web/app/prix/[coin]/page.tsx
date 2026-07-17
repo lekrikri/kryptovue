@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   fetchCandles,
   fetchIndicators,
-  fetchNewsBySymbol,
+  fetchNewsImpact,
 } from "@/lib/api";
 import { coinBySlug, coinIcon, COINS } from "@/lib/coins";
 import { changePercent, formatPrice } from "@/lib/format";
@@ -43,11 +43,16 @@ export default async function CoinPage({
   const coin = coinBySlug(slug);
   if (!coin) notFound();
 
-  const [candles, news, indicators] = await Promise.all([
+  const [candles, newsImpact, indicators] = await Promise.all([
     fetchCandles(coin.symbol, "1m", 240),
-    fetchNewsBySymbol(coin.symbol, 6),
+    fetchNewsImpact(coin.symbol),
     fetchIndicators(coin.symbol),
   ]);
+  const news = newsImpact.map((n) => n.news);
+  const impacts: Record<string, number> = {};
+  for (const n of newsImpact) {
+    if (n.has_impact && n.impact_pct !== undefined) impacts[n.news.id] = n.impact_pct;
+  }
   const last = candles.at(-1);
   const price = last?.close;
   const pct =
@@ -132,7 +137,7 @@ export default async function CoinPage({
         <h2 className="text-sm font-bold tracking-widest text-white">
           NEWS_SCAN :: {coin.ticker}
         </h2>
-        <NewsFeed news={news} />
+        <NewsFeed news={news} impacts={impacts} />
       </section>
 
       <section className="max-w-none text-sm text-gray-500">
