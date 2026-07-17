@@ -185,6 +185,69 @@ func (s *Store) LatestBrief(ctx context.Context) (model.Brief, bool, error) {
 	return b, true, nil
 }
 
+// UpsertCoinMeta met à jour les métadonnées d'un actif.
+func (s *Store) UpsertCoinMeta(ctx context.Context, m model.CoinMeta, price float64) error {
+	_, err := s.pool.Exec(ctx, `
+		INSERT INTO coin_meta (symbol, market_cap, volume_24h, change_24h, price_usd, updated_at)
+		VALUES ($1, $2, $3, $4, $5, now())
+		ON CONFLICT (symbol) DO UPDATE SET
+			market_cap = EXCLUDED.market_cap,
+			volume_24h = EXCLUDED.volume_24h,
+			change_24h = EXCLUDED.change_24h,
+			price_usd = EXCLUDED.price_usd,
+			updated_at = now()`,
+		m.Symbol, m.MarketCap, m.Volume24h, m.Change24h, price)
+	return err
+}
+
+// UpsertGlobalMeta met à jour la ligne unique de métadonnées globales.
+func (s *Store) UpsertGlobalMeta(ctx context.Context, g model.GlobalMeta) error {
+	_, err := s.pool.Exec(ctx, `
+		INSERT INTO global_meta (id, total_market_cap, btc_dominance, market_cap_change, updated_at)
+		VALUES (1, $1, $2, $3, now())
+		ON CONFLICT (id) DO UPDATE SET
+			total_market_cap = EXCLUDED.total_market_cap,
+			btc_dominance = EXCLUDED.btc_dominance,
+			market_cap_change = EXCLUDED.market_cap_change,
+			updated_at = now()`,
+		g.TotalMarketCap, g.BTCDominance, g.MarketCapChange)
+	return err
+}
+
+// CoinMetaAll retourne les métadonnées de tous les actifs.
+func (s *Store) CoinMetaAll(ctx context.Context) (map[string]model.CoinMeta, error) {
+	rows, err := s.pool.Query(ctx,
+		`SELECT symbol, market_cap, volume_24h, change_24h FROM coin_meta`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[string]model.CoinMeta)
+	for rows.Next() {
+		var m model.CoinMeta
+		if err := rows.Scan(&m.Symbol, &m.MarketCap, &m.Volume24h, &m.Change24h); err != nil {
+			return nil, err
+		}
+		out[m.Symbol] = m
+	}
+	return out, rows.Err()
+}
+
+// GlobalMeta retourne les métadonnées globales (ok=false si absentes).
+func (s *Store) GlobalMeta(ctx context.Context) (model.GlobalMeta, bool, error) {
+	var g model.GlobalMeta
+	err := s.pool.QueryRow(ctx,
+		`SELECT total_market_cap, btc_dominance, market_cap_change FROM global_meta WHERE id = 1`).
+		Scan(&g.TotalMarketCap, &g.BTCDominance, &g.MarketCapChange)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return g, false, nil
+		}
+		return g, false, err
+	}
+	return g, true, nil
+}
+
 // CloseNear retourne la clôture 1m la plus proche (± tolérance) d'un instant t.
 func (s *Store) CloseNear(ctx context.Context, symbol string, t time.Time, tolMinutes int) (float64, bool, error) {
 	var c float64

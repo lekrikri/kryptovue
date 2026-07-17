@@ -128,6 +128,32 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"data": news, "count": len(news)})
 	})
 
+	router.GET("/api/v1/global", func(c *gin.Context) {
+		g, ok, err := db.GlobalMeta(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		if !ok {
+			c.JSON(http.StatusOK, gin.H{"data": nil})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": g})
+	})
+
+	router.GET("/api/v1/market-meta", func(c *gin.Context) {
+		meta, err := db.CoinMetaAll(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		out := make([]model.CoinMeta, 0, len(meta))
+		for _, m := range meta {
+			out = append(out, m)
+		}
+		c.JSON(http.StatusOK, gin.H{"data": out, "count": len(out)})
+	})
+
 	router.GET("/api/v1/indicators/:symbol", func(c *gin.Context) {
 		symbol := c.Param("symbol")
 		// Indicateurs sur bougies 1h (fenêtre pertinente pour RSI/MACD).

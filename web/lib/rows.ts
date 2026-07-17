@@ -1,27 +1,30 @@
-import { fetchCandles, fetchPrices } from "./api";
+import { fetchCandles, fetchMarketMeta, fetchPrices } from "./api";
 import { COINS } from "./coins";
 import { changePercent } from "./format";
 import type { Row } from "@/components/PriceTable";
 
-// buildRows agrège prix + bougies récentes pour alimenter le tableau d'accueil
-// (prix, variation sur la fenêtre, série pour la sparkline).
+// buildRows agrège prix + bougies + métadonnées CoinGecko (market cap, vraie
+// variation 24h) pour alimenter le tableau d'accueil.
 export async function buildRows(): Promise<Row[]> {
-  const prices = await fetchPrices();
+  const [prices, meta, candlesPerCoin] = await Promise.all([
+    fetchPrices(),
+    fetchMarketMeta(),
+    Promise.all(COINS.map((c) => fetchCandles(c.symbol, "1m", 90))),
+  ]);
   const priceMap = new Map(prices.map((p) => [p.symbol, p.price]));
-
-  const candlesPerCoin = await Promise.all(
-    COINS.map((c) => fetchCandles(c.symbol, "1m", 90)),
-  );
 
   return COINS.map((coin, i) => {
     const candles = candlesPerCoin[i];
     const spark = candles.map((c) => c.close);
+    const m = meta[coin.symbol];
+    // Variation 24h réelle (CoinGecko) si disponible, sinon repli sur les bougies.
     const changePct =
-      candles.length >= 2
-        ? changePercent(candles[0].open, candles[candles.length - 1].close)
-        : 0;
-    const price =
-      priceMap.get(coin.symbol) ?? candles.at(-1)?.close ?? null;
+      m?.change_24h !== undefined && m.change_24h !== 0
+        ? m.change_24h
+        : candles.length >= 2
+          ? changePercent(candles[0].open, candles[candles.length - 1].close)
+          : 0;
+    const price = priceMap.get(coin.symbol) ?? candles.at(-1)?.close ?? null;
     return {
       symbol: coin.symbol,
       slug: coin.slug,
@@ -31,6 +34,7 @@ export async function buildRows(): Promise<Row[]> {
       price,
       changePct,
       spark,
+      marketCap: m?.market_cap ?? null,
     };
   });
 }

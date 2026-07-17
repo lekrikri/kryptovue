@@ -24,6 +24,9 @@ run-aggregator:
 run-api:
 	METRICS_ADDR=:9103 go run ./cmd/api
 
+run-metadata:
+	go run ./cmd/metadata
+
 # --- Qualité ---
 vet:
 	go vet ./...

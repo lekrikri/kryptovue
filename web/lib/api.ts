@@ -1,6 +1,8 @@
 import type {
   Brief,
   Candle,
+  CoinMeta,
+  GlobalMeta,
   Indicators,
   News,
   NewsImpact,
@@ -82,6 +84,24 @@ export async function fetchNewsImpact(symbol: string): Promise<NewsImpact[]> {
     return body.data ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function fetchGlobalMeta(): Promise<GlobalMeta | null> {
+  try {
+    const body = await getJSON<{ data: GlobalMeta | null }>("/api/v1/global", 120);
+    return body.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchMarketMeta(): Promise<Record<string, CoinMeta>> {
+  try {
+    const body = await getJSON<ListResponse<CoinMeta>>("/api/v1/market-meta", 120);
+    return Object.fromEntries((body.data ?? []).map((m) => [m.symbol, m]));
+  } catch {
+    return {};
   }
 }
 

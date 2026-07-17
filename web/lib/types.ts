@@ -48,6 +48,19 @@ export interface Brief {
   created_at: string;
 }
 
+export interface GlobalMeta {
+  total_market_cap: number;
+  btc_dominance: number;
+  market_cap_change_24h: number;
+}
+
+export interface CoinMeta {
+  symbol: string;
+  market_cap: number;
+  volume_24h: number;
+  change_24h: number;
+}
+
 export interface NewsImpact {
   news: News;
   has_impact: boolean;

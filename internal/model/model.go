@@ -82,6 +82,21 @@ type Indicators struct {
 	Points      int     `json:"points"`        // nb de bougies utilisées
 }
 
+// CoinMeta : métadonnées de marché d'un actif (CoinGecko).
+type CoinMeta struct {
+	Symbol    string  `json:"symbol"`
+	MarketCap float64 `json:"market_cap"`
+	Volume24h float64 `json:"volume_24h"`
+	Change24h float64 `json:"change_24h"`
+}
+
+// GlobalMeta : métadonnées globales du marché.
+type GlobalMeta struct {
+	TotalMarketCap  float64 `json:"total_market_cap"`
+	BTCDominance    float64 `json:"btc_dominance"`
+	MarketCapChange float64 `json:"market_cap_change_24h"`
+}
+
 // NewsImpact décrit la réaction du prix autour d'une actualité (descriptif, passé).
 type NewsImpact struct {
 	News      News     `json:"news"`

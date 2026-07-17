@@ -19,3 +19,12 @@ export function changePercent(open: number, close: number): number {
   if (!open) return 0;
   return ((close - open) / open) * 100;
 }
+
+// Format compact pour grandes valeurs USD : 2.24T $, 220.4B $, 8.4M $.
+export function formatCompactUSD(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T $`;
+  if (abs >= 1e9) return `${(value / 1e9).toFixed(1)}B $`;
+  if (abs >= 1e6) return `${(value / 1e6).toFixed(1)}M $`;
+  return `${value.toFixed(0)} $`;
+}

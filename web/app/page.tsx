@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { buildRows } from "@/lib/rows";
-import { fetchBrief, fetchNews, fetchNoiseSignal } from "@/lib/api";
-import { formatChange, formatPrice } from "@/lib/format";
+import { fetchBrief, fetchGlobalMeta, fetchNews, fetchNoiseSignal } from "@/lib/api";
+import { formatChange, formatCompactUSD } from "@/lib/format";
 import { PriceTable } from "@/components/PriceTable";
 import { SentimentGauge } from "@/components/SentimentGauge";
 import { NewsFeed } from "@/components/NewsFeed";
@@ -10,16 +10,15 @@ import { NoiseSignalPanel } from "@/components/NoiseSignalPanel";
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const [rows, news, brief, noise] = await Promise.all([
+  const [rows, news, brief, noise, global] = await Promise.all([
     buildRows(),
     fetchNews(8),
     fetchBrief(),
     fetchNoiseSignal(),
+    fetchGlobalMeta(),
   ]);
   const gainers = rows.filter((r) => r.changePct > 0).length;
   const losers = rows.length - gainers;
-  const avgChange = rows.reduce((s, r) => s + r.changePct, 0) / (rows.length || 1);
-  const btc = rows.find((r) => r.symbol === "btcusdt");
   const sentiment = Math.round((gainers / (rows.length || 1)) * 100);
 
   return (
@@ -59,12 +58,18 @@ export default async function HomePage() {
 
           <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-3">
-              <Panel label="BTC_LAST" value={btc?.price ? formatPrice(btc.price) : "—"} sub="SPOT // BINANCE" />
               <Panel
-                label="AVG_DELTA_24H"
-                value={formatChange(avgChange)}
-                sub={`${gainers}/${rows.length} ASSETS_UP`}
-                accent={avgChange >= 0 ? "text-up" : "text-down"}
+                label="BTC_DOMINANCE"
+                value={global ? `${global.btc_dominance.toFixed(1)} %` : "—"}
+                sub="MARKET_SHARE"
+              />
+              <Panel
+                label="MKT_CAP_TOTAL"
+                value={global ? formatCompactUSD(global.total_market_cap) : "—"}
+                sub={global ? `${formatChange(global.market_cap_change_24h)} / 24H` : "—"}
+                accent={
+                  global && global.market_cap_change_24h < 0 ? "text-down" : "text-up"
+                }
               />
             </div>
             <div className="rounded-lg border border-line bg-panel-2 p-4">

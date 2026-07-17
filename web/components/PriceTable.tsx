@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { coinIcon } from "@/lib/coins";
-import { formatPrice } from "@/lib/format";
+import { formatCompactUSD, formatPrice } from "@/lib/format";
 import { ChangeBadge } from "@/components/ChangeBadge";
 import { Sparkline } from "@/components/Sparkline";
 import { useTradeStream } from "@/hooks/useTradeStream";
@@ -16,6 +16,7 @@ export interface Row {
   price: number | null;
   changePct: number;
   spark: number[];
+  marketCap: number | null;
 }
 
 // PriceTable : LIVE_FEED. Prix initiaux en SSR, remplacés en direct par le SSE.
@@ -30,6 +31,9 @@ export function PriceTable({ rows }: { rows: Row[] }) {
             <th className="px-4 py-3 font-medium sm:px-5">ASSET_IDENT</th>
             <th className="px-4 py-3 text-right font-medium sm:px-5">VAL_UNIT (USD)</th>
             <th className="px-4 py-3 text-right font-medium sm:px-5">VAR_24H</th>
+            <th className="hidden px-5 py-3 text-right font-medium md:table-cell">
+              MKT_CAP
+            </th>
             <th className="hidden px-5 py-3 text-right font-medium lg:table-cell">
               TND_7D_SCAN
             </th>
@@ -77,6 +81,9 @@ export function PriceTable({ rows }: { rows: Row[] }) {
                 </td>
                 <td className="px-4 py-3.5 text-right sm:px-5">
                   <ChangeBadge pct={row.changePct} />
+                </td>
+                <td className="hidden px-5 py-3.5 text-right text-sm tabular-nums text-gray-400 md:table-cell">
+                  {row.marketCap ? formatCompactUSD(row.marketCap) : "—"}
                 </td>
                 <td className="hidden px-5 py-3.5 lg:table-cell">
                   <div className="flex justify-end">
