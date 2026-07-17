@@ -26,6 +26,9 @@ export default function AlertesPage() {
   const [ruleType, setRuleType] = useState("price_below");
   const [threshold, setThreshold] = useState("");
   const [msg, setMsg] = useState("");
+  const [nl, setNl] = useState("");
+  const [nlBusy, setNlBusy] = useState(false);
+  const [nlMsg, setNlMsg] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem("kv_chat_id");
@@ -75,6 +78,33 @@ export default function AlertesPage() {
     }
   }
 
+  async function parseNL(e: React.FormEvent) {
+    e.preventDefault();
+    setNlMsg("");
+    if (!nl.trim()) return;
+    setNlBusy(true);
+    try {
+      const res = await fetch(`${API}/api/v1/alerts/parse`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: nl }),
+      });
+      const body = await res.json();
+      if (res.ok && body.data) {
+        setSymbol(body.data.symbol);
+        setRuleType(body.data.rule_type);
+        setThreshold(String(body.data.threshold ?? ""));
+        setNlMsg("✓ compris — vérifie puis clique sur Créer.");
+      } else {
+        setNlMsg(body.error ?? "Demande non comprise, reformule.");
+      }
+    } catch {
+      setNlMsg("IA indisponible — utilise le formulaire.");
+    } finally {
+      setNlBusy(false);
+    }
+  }
+
   async function remove(id: number) {
     await fetch(`${API}/api/v1/alerts/${id}?target=${encodeURIComponent(chatId)}`, {
       method: "DELETE",
@@ -114,7 +144,32 @@ export default function AlertesPage() {
           {"// obtiens ton chat_id en écrivant à @userinfobot sur Telegram"}
         </p>
 
-        <form onSubmit={create} className="mt-5 grid gap-3 sm:grid-cols-4">
+        {/* Langage naturel (Qwen) */}
+        <form onSubmit={parseNL} className="mt-5">
+          <label className="text-[11px] tracking-widest text-accent">
+            {"// DÉCRIS TON ALERTE (IA)"}
+          </label>
+          <div className="mt-1 flex gap-2">
+            <input
+              value={nl}
+              onChange={(e) => setNl(e.target.value)}
+              placeholder="ex : préviens-moi si le bitcoin dépasse 70000 dollars"
+              className="flex-1 rounded-lg border border-line bg-panel-2 px-3 py-2 text-sm text-white outline-none focus:border-accent"
+            />
+            <button
+              type="submit"
+              disabled={nlBusy}
+              className="rounded-lg border border-accent px-4 py-2 text-xs font-bold uppercase tracking-widest text-accent hover:bg-accent hover:text-bg disabled:opacity-40"
+            >
+              {nlBusy ? "…" : "Analyser"}
+            </button>
+          </div>
+          {nlMsg && <p className="mt-2 text-xs text-gray-400">{nlMsg}</p>}
+        </form>
+
+        <div className="my-5 border-t border-line" />
+
+        <form onSubmit={create} className="grid gap-3 sm:grid-cols-4">
           <select
             value={symbol}
             onChange={(e) => setSymbol(e.target.value)}

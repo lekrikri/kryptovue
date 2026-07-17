@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -21,10 +22,25 @@ import (
 	"github.com/lekrikri/kryptovue/internal/alert"
 	"github.com/lekrikri/kryptovue/internal/analytics"
 	"github.com/lekrikri/kryptovue/internal/config"
+	"github.com/lekrikri/kryptovue/internal/llm"
 	"github.com/lekrikri/kryptovue/internal/metrics"
 	"github.com/lekrikri/kryptovue/internal/model"
 	"github.com/lekrikri/kryptovue/internal/store"
 )
+
+// alertCatalog associe des noms/tickers FR au symbole, pour le parsing en langage naturel.
+var alertCatalog = map[string]string{
+	"bitcoin": "btcusdt", "btc": "btcusdt",
+	"ethereum": "ethusdt", "eth": "ethusdt",
+	"solana": "solusdt", "sol": "solusdt",
+	"xrp": "xrpusdt", "ripple": "xrpusdt",
+	"cardano": "adausdt", "ada": "adausdt",
+	"dogecoin": "dogeusdt", "doge": "dogeusdt",
+	"polkadot": "dotusdt", "dot": "dotusdt",
+	"chainlink": "linkusdt", "link": "linkusdt",
+	"avalanche": "avaxusdt", "avax": "avaxusdt",
+	"litecoin": "ltcusdt", "ltc": "ltcusdt",
+}
 
 // hub diffuse chaque message Kafka à tous les abonnés SSE connectés.
 type hub struct {
@@ -162,6 +178,31 @@ func main() {
 			return
 		}
 		c.JSON(http.StatusCreated, gin.H{"id": id})
+	})
+
+	// Parsing d'une alerte en langage naturel (Qwen) → règle structurée (non enregistrée).
+	router.POST("/api/v1/alerts/parse", func(c *gin.Context) {
+		var body struct {
+			Text string `json:"text"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil || strings.TrimSpace(body.Text) == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "texte requis"})
+			return
+		}
+		parsed, err := llm.ParseAlert(c.Request.Context(), body.Text, alertCatalog)
+		if err != nil {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+			return
+		}
+		// Normalise le symbole (le LLM peut renvoyer "bitcoin" ou "btcusdt").
+		if sym, ok := alertCatalog[parsed.Symbol]; ok {
+			parsed.Symbol = sym
+		}
+		if !strings.HasSuffix(parsed.Symbol, "usdt") || !alert.ValidType(parsed.RuleType) {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "demande non reconnue, reformule ou utilise le formulaire"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": parsed})
 	})
 
 	router.GET("/api/v1/alerts", func(c *gin.Context) {

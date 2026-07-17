@@ -68,6 +68,11 @@ services:
     environment:
       <<: *service-env
       API_PORT: "8080"
+      # Parsing d'alertes en langage naturel (optionnel, Qwen via ollama hôte).
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5:3b}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       redpanda:
         condition: service_healthy
