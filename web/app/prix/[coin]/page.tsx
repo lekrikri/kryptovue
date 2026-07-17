@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { fetchCandles, fetchNewsBySymbol } from "@/lib/api";
+import {
+  fetchCandles,
+  fetchIndicators,
+  fetchNewsBySymbol,
+} from "@/lib/api";
 import { coinBySlug, coinIcon, COINS } from "@/lib/coins";
 import { changePercent, formatPrice } from "@/lib/format";
 import { ChangeBadge } from "@/components/ChangeBadge";
 import { CandlestickChart } from "@/components/CandlestickChart";
+import { IndicatorsPanel } from "@/components/IndicatorsPanel";
 import { NewsFeed } from "@/components/NewsFeed";
 
 export const revalidate = 30;
@@ -38,9 +43,10 @@ export default async function CoinPage({
   const coin = coinBySlug(slug);
   if (!coin) notFound();
 
-  const [candles, news] = await Promise.all([
+  const [candles, news, indicators] = await Promise.all([
     fetchCandles(coin.symbol, "1m", 240),
     fetchNewsBySymbol(coin.symbol, 6),
+    fetchIndicators(coin.symbol),
   ]);
   const last = candles.at(-1);
   const price = last?.close;
@@ -112,6 +118,15 @@ export default async function CoinPage({
       </section>
 
       <CandlestickChart candles={candles} />
+
+      {indicators && indicators.points >= 2 && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-bold tracking-widest text-white">
+            INDICATORS :: TECH_SCAN
+          </h2>
+          <IndicatorsPanel ind={indicators} />
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-sm font-bold tracking-widest text-white">

@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/twmb/franz-go/pkg/kgo"
 
+	"github.com/lekrikri/kryptovue/internal/analytics"
 	"github.com/lekrikri/kryptovue/internal/config"
 	"github.com/lekrikri/kryptovue/internal/metrics"
 	"github.com/lekrikri/kryptovue/internal/store"
@@ -124,6 +125,24 @@ func main() {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"data": news, "count": len(news)})
+	})
+
+	router.GET("/api/v1/indicators/:symbol", func(c *gin.Context) {
+		symbol := c.Param("symbol")
+		// Indicateurs sur bougies 1h (fenêtre pertinente pour RSI/MACD).
+		candles, err := db.Candles(c.Request.Context(), symbol, "1h", 200)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameters"})
+			return
+		}
+		if len(candles) < 50 {
+			// Historique horaire trop court (RSI/MACD/anomalie peu fiables) :
+			// repli sur les bougies 1m, plus nombreuses.
+			if m, err := db.Candles(c.Request.Context(), symbol, "1m", 500); err == nil && len(m) > len(candles) {
+				candles = m
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"data": analytics.Compute(symbol, candles)})
 	})
 
 	router.GET("/api/v1/brief", func(c *gin.Context) {

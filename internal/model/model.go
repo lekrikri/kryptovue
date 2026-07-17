@@ -63,3 +63,21 @@ type Brief struct {
 	Model     string    `json:"model"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+// Indicators regroupe les indicateurs techniques et l'anomalie d'un symbole.
+type Indicators struct {
+	Symbol      string  `json:"symbol"`
+	RSI         float64 `json:"rsi"`
+	RSIZone     string  `json:"rsi_zone"`
+	MACD        float64 `json:"macd"`
+	MACDSignal  float64 `json:"macd_signal"`
+	MACDHist    float64 `json:"macd_hist"`
+	SMA20       float64 `json:"sma20"`
+	EMA50       float64 `json:"ema50"`
+	Volatility  float64 `json:"volatility"`    // % (écart-type des rendements)
+	VolumeZ     float64 `json:"volume_zscore"` // σ sur le dernier volume
+	ReturnZ     float64 `json:"return_zscore"` // σ sur le dernier rendement
+	Anomaly     bool    `json:"anomaly"`       // |z| >= seuil sur volume ou rendement
+	AnomalyNote string  `json:"anomaly_note"`  // description FR si anomalie
+	Points      int     `json:"points"`        // nb de bougies utilisées
+}

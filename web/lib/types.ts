@@ -47,3 +47,20 @@ export interface Brief {
   model: string;
   created_at: string;
 }
+
+export interface Indicators {
+  symbol: string;
+  rsi: number;
+  rsi_zone: "surachat" | "survente" | "neutre";
+  macd: number;
+  macd_signal: number;
+  macd_hist: number;
+  sma20: number;
+  ema50: number;
+  volatility: number;
+  volume_zscore: number;
+  return_zscore: number;
+  anomaly: boolean;
+  anomaly_note: string;
+  points: number;
+}
