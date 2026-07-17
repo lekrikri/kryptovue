@@ -49,6 +49,16 @@ build:
 
 ci: vet test build
 
+# --- Stack complète en local (tout dockerisé, redémarrage auto) ---
+dev-full-up:
+	docker compose -f deploy/docker-compose.dev-full.yml up -d --build
+
+dev-full-down:
+	docker compose -f deploy/docker-compose.dev-full.yml down
+
+dev-full-logs:
+	docker compose -f deploy/docker-compose.dev-full.yml logs -f
+
 # --- Docker / prod ---
 docker-build:
 	@for svc in $(SERVICES); do \

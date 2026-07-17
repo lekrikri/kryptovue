@@ -65,7 +65,17 @@ marteau-pilon pour ce volume.
 
 ## Démarrage rapide (développement)
 
-### Infrastructure + services Go
+### Option A — tout dockerisé (recommandé, stable)
+```bash
+make dev-full-up      # build + lance infra + 6 services + worker + front (redémarrage auto)
+# API : http://localhost:8082 · Front : http://localhost:3006 · Console Redpanda : :8090
+make run-backfill     # (optionnel) DATABASE_URL=…5434 pour charger l'historique
+make dev-full-down    # tout arrêter
+```
+
+### Option B — services à la main (itération rapide)
+
+#### Infrastructure + services Go
 ```bash
 make infra-up          # Redpanda + Console (:8090) + TimescaleDB (:5434)
 make run-ingester      # Binance WS → Redpanda

@@ -8,3 +8,13 @@ _archive
 Makefile
 deploy
 **/*_test.go
+
+# Environnements / dépendances volumineux (hors contexte de build Go)
+ai-worker/.venv
+ai-worker/__pycache__
+**/.venv
+**/__pycache__
+web/node_modules
+web/.next
+**/node_modules
+*.log
