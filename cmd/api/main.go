@@ -93,7 +93,7 @@ func main() {
 	go metrics.Serve(ctx, cfg.MetricsAddr)
 
 	router := gin.New()
-	router.Use(gin.Recovery(), metricsMiddleware())
+	router.Use(gin.Recovery(), corsMiddleware(), metricsMiddleware())
 
 	router.GET("/health", func(c *gin.Context) {
 		status := "healthy"
@@ -447,6 +447,21 @@ func main() {
 }
 
 func round2(v float64) float64 { return math.Round(v*100) / 100 }
+
+// corsMiddleware autorise les requêtes du front (origine différente en dev/prod).
+// API publique en lecture + alertes : origine ouverte, méthodes limitées.
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Content-Type")
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+	}
+}
 
 // metricsMiddleware enregistre le nombre et la latence des requêtes HTTP.
 // La route est prise depuis c.FullPath() (motif, ex "/api/v1/candles/:symbol")
