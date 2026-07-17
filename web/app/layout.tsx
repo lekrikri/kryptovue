@@ -70,7 +70,12 @@ export default function RootLayout({
             </div>
             <FooterCol
               title="ECOSYSTEM"
-              links={["Marchés", "Heatmap", "Actus FR", "Sentiment IA"]}
+              links={[
+                { label: "Marchés", href: "/" },
+                { label: "Heatmap", href: "/heatmap" },
+                { label: "Actus FR", href: "/actus" },
+                { label: "Alertes", href: "/alertes" },
+              ]}
             />
             <FooterCol
               title="RESOURCES"
