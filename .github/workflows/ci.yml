@@ -92,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [ingester, aggregator, api, metadata, alerter]
+        service: [ingester, aggregator, api, metadata, alerter, backfill]
     steps:
       - uses: actions/checkout@v4
 

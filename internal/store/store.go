@@ -316,9 +316,10 @@ func (s *Store) CloseNear(ctx context.Context, symbol string, t time.Time, tolMi
 	var c float64
 	err := s.pool.QueryRow(ctx, `
 		SELECT close FROM candles_1m
-		WHERE symbol = $1 AND bucket_start BETWEEN $2 - make_interval(mins => $3)
-		                                       AND $2 + make_interval(mins => $3)
-		ORDER BY abs(extract(epoch FROM bucket_start - $2))
+		WHERE symbol = $1
+		  AND bucket_start BETWEEN $2::timestamptz - ($3 * interval '1 minute')
+		                       AND $2::timestamptz + ($3 * interval '1 minute')
+		ORDER BY abs(extract(epoch FROM bucket_start - $2::timestamptz))
 		LIMIT 1`, symbol, t, tolMinutes).Scan(&c)
 	if err != nil {
 		if err == pgx.ErrNoRows {

@@ -247,9 +247,12 @@ func main() {
 		out := make([]model.NewsImpact, 0, len(news))
 		for _, n := range news {
 			imp := model.NewsImpact{News: n}
-			// Prix ± 5 min autour de la publication, et ~1 h après.
-			at, okA, _ := db.CloseNear(ctx, symbol, n.PublishedAt, 5)
-			next, okB, _ := db.CloseNear(ctx, symbol, n.PublishedAt.Add(time.Hour), 5)
+			// Prix ± 10 min autour de la publication, et ~1 h après.
+			at, okA, errA := db.CloseNear(ctx, symbol, n.PublishedAt, 10)
+			next, okB, errB := db.CloseNear(ctx, symbol, n.PublishedAt.Add(time.Hour), 10)
+			if errA != nil || errB != nil {
+				slog.Warn("news-impact CloseNear", "errA", errA, "errB", errB, "at", n.PublishedAt)
+			}
 			if okA && okB && at != 0 {
 				pct := (next - at) / at * 100
 				imp.HasImpact = true

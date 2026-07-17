@@ -30,6 +30,10 @@ run-metadata:
 run-alerter:
 	go run ./cmd/alerter
 
+# Charge l'historique 1m depuis Binance (job one-shot). BACKFILL_DAYS=7 par défaut.
+run-backfill:
+	go run ./cmd/backfill
+
 # --- Qualité ---
 vet:
 	go vet ./...
