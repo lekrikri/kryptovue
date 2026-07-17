@@ -82,6 +82,14 @@ services:
     environment:
       DATABASE_URL: postgres://kryptovue:${POSTGRES_PASSWORD:-kryptovue}@timescaledb:5432/kryptovue
       POLL_SECONDS: "600"
+      # Sentiment : "lexicon" (défaut, hors-ligne) ou "llm" (Qwen via ollama).
+      # Pour activer le LLM, faire tourner ollama sur l'hôte et pointer LLM_BASE_URL.
+      SENTIMENT_BACKEND: ${SENTIMENT_BACKEND:-lexicon}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:11434/v1}
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5:3b}
+      BRIEF_EVERY_HOURS: "6"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       timescaledb:
         condition: service_healthy

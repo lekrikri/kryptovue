@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { buildRows } from "@/lib/rows";
-import { fetchNews } from "@/lib/api";
+import { fetchBrief, fetchNews } from "@/lib/api";
 import { formatChange, formatPrice } from "@/lib/format";
 import { PriceTable } from "@/components/PriceTable";
 import { SentimentGauge } from "@/components/SentimentGauge";
@@ -9,7 +9,11 @@ import { NewsFeed } from "@/components/NewsFeed";
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const [rows, news] = await Promise.all([buildRows(), fetchNews(8)]);
+  const [rows, news, brief] = await Promise.all([
+    buildRows(),
+    fetchNews(8),
+    fetchBrief(),
+  ]);
   const gainers = rows.filter((r) => r.changePct > 0).length;
   const losers = rows.length - gainers;
   const avgChange = rows.reduce((s, r) => s + r.changePct, 0) / (rows.length || 1);
@@ -68,6 +72,21 @@ export default async function HomePage() {
         </div>
         <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
       </section>
+
+      {/* Briefing IA */}
+      {brief && (
+        <section className="rounded-lg border border-accent/30 bg-panel p-5">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-bold tracking-widest text-accent">
+              MARKET_BRIEF :: DAILY_SYNTH
+            </h2>
+            <span className="text-[10px] tracking-widest text-gray-500">
+              GEN_BY :: {brief.model}
+            </span>
+          </div>
+          <p className="text-sm leading-relaxed text-gray-300">{brief.content}</p>
+        </section>
+      )}
 
       {/* Cartes stats */}
       <section className="grid grid-cols-3 gap-3">

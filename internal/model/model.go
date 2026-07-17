@@ -56,3 +56,10 @@ type Sentiment struct {
 	Label  string  `json:"label"`
 	Count  int     `json:"count"`
 }
+
+// Brief est le résumé de marché généré par le LLM.
+type Brief struct {
+	Content   string    `json:"content"`
+	Model     string    `json:"model"`
+	CreatedAt time.Time `json:"created_at"`
+}

@@ -16,18 +16,23 @@ from datetime import datetime, timezone
 
 import feedparser
 
-from coins import match_coins
+from analyzer import analyze
+from coins import COIN_ALIASES, match_coins
 from feeds import FEEDS
-from sentiment import analyze
 from store import Store
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("ai-worker")
 
 POLL_SECONDS = int(os.getenv("POLL_SECONDS", "600"))
+BRIEF_EVERY_HOURS = float(os.getenv("BRIEF_EVERY_HOURS", "6"))
 DATABASE_URL = os.getenv(
     "DATABASE_URL", "postgres://kryptovue:kryptovue@localhost:5434/kryptovue"
 )
+
+
+def _ticker(symbol: str) -> str:
+    return COIN_ALIASES.get(symbol, [symbol])[-1].upper()
 
 _TAG_RE = re.compile(r"<[^>]+>")
 
@@ -77,6 +82,30 @@ def process_feed(store: Store, source: str, url: str) -> tuple[int, int]:
     return seen, new
 
 
+def maybe_generate_brief(store: Store) -> None:
+    """Génère un résumé de marché si le dernier date de plus de BRIEF_EVERY_HOURS."""
+    age = store.latest_brief_age_hours()
+    if age is not None and age < BRIEF_EVERY_HOURS:
+        return
+    stats = store.market_stats()
+    if not stats:
+        return
+    try:
+        import llm
+
+        stats.sort(key=lambda x: x[1], reverse=True)
+        market_lines = [f"- {_ticker(s)}: {chg:+.2f}% / 1h" for s, chg in stats]
+        news_lines = [
+            f"- [{label}] {title} ({source})"
+            for title, source, label in store.top_news_today(8)
+        ] or ["- (aucune actualité récente)"]
+        content = llm.generate_brief(market_lines, news_lines)
+        store.insert_brief(content, llm.LLM_MODEL)
+        log.info("briefing généré (%d caractères)", len(content))
+    except Exception as exc:
+        log.warning("génération du briefing échouée : %s", exc)
+
+
 def run_once(store: Store) -> None:
     for source, url in FEEDS:
         try:
@@ -84,6 +113,7 @@ def run_once(store: Store) -> None:
             log.info("%s : %d articles (%d nouveaux)", source, seen, new)
         except Exception as exc:
             log.error("flux %s en erreur : %s", source, exc)
+    maybe_generate_brief(store)
 
 
 def main() -> None:

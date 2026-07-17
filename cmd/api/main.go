@@ -126,6 +126,19 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"data": news, "count": len(news)})
 	})
 
+	router.GET("/api/v1/brief", func(c *gin.Context) {
+		brief, ok, err := db.LatestBrief(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
+		}
+		if !ok {
+			c.JSON(http.StatusOK, gin.H{"data": nil})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": brief})
+	})
+
 	router.GET("/api/v1/sentiment", func(c *gin.Context) {
 		sent, err := db.SentimentBySymbol(c.Request.Context())
 		if err != nil {

@@ -1,4 +1,4 @@
-import type { Candle, News, Price, Sentiment } from "./types";
+import type { Brief, Candle, News, Price, Sentiment } from "./types";
 
 // URL serveur (SSR / Server Components). En prod: http://api:8080 (réseau Docker).
 const SERVER_API = process.env.API_URL ?? "http://localhost:8081";
@@ -61,6 +61,15 @@ export async function fetchNewsBySymbol(symbol: string, limit = 6): Promise<News
     return body.data ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function fetchBrief(): Promise<Brief | null> {
+  try {
+    const body = await getJSON<{ data: Brief | null }>("/api/v1/brief", 300);
+    return body.data;
+  } catch {
+    return null;
   }
 }
 

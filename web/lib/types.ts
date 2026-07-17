@@ -41,3 +41,9 @@ export interface Sentiment {
   label: "positive" | "neutral" | "negative";
   count: number;
 }
+
+export interface Brief {
+  content: string;
+  model: string;
+  created_at: string;
+}

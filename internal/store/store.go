@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/lekrikri/kryptovue/internal/model"
@@ -167,6 +168,21 @@ func (s *Store) NewsBySymbol(ctx context.Context, symbol string, limit int) ([]m
 	}
 	defer rows.Close()
 	return scanNews(rows)
+}
+
+// LatestBrief retourne le dernier résumé de marché généré (ok=false si aucun).
+func (s *Store) LatestBrief(ctx context.Context) (model.Brief, bool, error) {
+	var b model.Brief
+	err := s.pool.QueryRow(ctx,
+		`SELECT content, model, created_at FROM market_brief ORDER BY created_at DESC LIMIT 1`).
+		Scan(&b.Content, &b.Model, &b.CreatedAt)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return b, false, nil
+		}
+		return b, false, err
+	}
+	return b, true, nil
 }
 
 // SentimentBySymbol agrège le sentiment moyen par symbole sur 48 h glissantes.

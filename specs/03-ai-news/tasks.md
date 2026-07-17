@@ -11,18 +11,24 @@
 - [x] T9. Front : NEWS_FEED accueil + NEWS_SCAN page crypto (badges sentiment)
 - [x] T10. Validation e2e + CI worker (pytest) + CD image ai-worker
 
-## Résultat de validation (2026-07-16)
+## Phase 3.5 — LLM local (Qwen) + résumé quotidien ✅
 
-Chaîne complète validée en local :
-- Worker : 40 articles réels collectés (Journal du Coin, Cryptoast, Cointribune),
-  7 positifs / 6 négatifs, 15 rattachés à une crypto. Sentiment cohérent
-  (« répit de l'inflation propulse le Bitcoin » → positif ; « baleines XRP réduisent
-  leur activité » → négatif).
-- API : `/api/v1/sentiment` → BTC neutre (13), ETH positif (0.25), XRP négatif (-0.27).
-- Front : section NEWS_FEED avec badges POSITIF/NEUTRE/NÉGATIF, source, ancienneté, tags.
-- 8 tests unitaires verts (lexique + matching, dont négation et frontières de mots).
+- [x] `ai-worker/llm.py` — client OpenAI-compatible (ollama/Qwen), parsing tolérant
+- [x] `ai-worker/analyzer.py` — sélecteur de backend (`SENTIMENT_BACKEND=lexicon|llm`)
+      avec repli automatique sur le lexique si le LLM est injoignable
+- [x] `deploy/init-db/003_brief.sql` — table `market_brief`
+- [x] Génération du résumé de marché FR par Qwen (`llm.generate_brief`), planifiée
+      dans la boucle (`BRIEF_EVERY_HOURS`)
+- [x] API Go `/api/v1/brief` + panneau front `MARKET_BRIEF :: DAILY_SYNTH`
+- [x] Tests `test_llm.py` (parsing robuste, hermétique) — 13 tests verts au total
 
-## Reste à faire (Phase 3.5)
-- [ ] Upgrade sentiment : Qwen local ou DistilCamemBERT (swap de `analyze`)
-- [ ] Résumé quotidien du marché généré par IA (Gemini Flash free tier)
-- [ ] Filtrer les articles non-crypto (sans coin ET score faible) du fil général
+### Validation Qwen (2026-07-16, qwen2.5:3b via ollama)
+- Sentiment LLM plus nuancé que le lexique : 25 négatifs / 13 positifs / 2 neutres.
+- Brief généré (869 caractères), factuel, informationnel (« Le DOT affiche l'une des
+  meilleures performances (+1,99 %)… l'ambiance des actualités est négative… »).
+- LLM optionnel : défaut `lexicon` (hermétique) ; `llm` en pointant `LLM_BASE_URL`
+  vers un ollama hôte (`host.docker.internal:11434` en prod).
+
+## Reste (Phase 3.6, optionnel)
+- [ ] Filtrer les articles non-crypto du fil général
+- [ ] Fine-tune / few-shot pour réduire les hallucinations d'actifs dans le brief
